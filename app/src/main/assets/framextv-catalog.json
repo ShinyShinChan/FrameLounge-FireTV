@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "version": "2026-10-20-starter",
+  "source": "FrameXTV publicly listed titles (starter snapshot; not stream-tested)",
+  "items": [
+    {
+      "type": "movie",
+      "id": 1153576,
+      "title": "Street Fighter"
+    },
+    {
+      "type": "movie",
+      "id": 1148365,
+      "title": "Matchbox the Movie"
+    },
+    {
+      "type": "movie",
+      "id": 1561726,
+      "title": "Masterplan"
+    },
+    {
+      "type": "movie",
+      "id": 1108427,
+      "title": "Moana"
+    },
+    {
+      "type": "movie",
+      "id": 1765072,
+      "title": "You Can See Everything"
+    },
+    {
+      "type": "movie",
+      "id": 1101412,
+      "title": "Fall 2: Deadpoint"
+    },
+    {
+      "type": "movie",
+      "id": 299536,
+      "title": "Avengers: Infinity War"
+    },
+    {
+      "type": "movie",
+      "id": 299534,
+      "title": "Avengers: Endgame"
+    },
+    {
+      "type": "movie",
+      "id": 157336,
+      "title": "Interstellar"
+    },
+    {
+      "type": "movie",
+      "id": 24428,
+      "title": "The Avengers"
+    },
+    {
+      "type": "tv",
+      "id": 1396,
+      "title": "Breaking Bad"
+    },
+    {
+      "type": "tv",
+      "id": 456,
+      "title": "The Simpsons"
+    },
+    {
+      "type": "tv",
+      "id": 1399,
+      "title": "Game of Thrones"
+    },
+    {
+      "type": "tv",
+      "id": 1402,
+      "title": "The Walking Dead"
+    },
+    {
+      "type": "tv",
+      "id": 2316,
+      "title": "The Office"
+    },
+    {
+      "type": "tv",
+      "id": 66732,
+      "title": "Stranger Things"
+    },
+    {
+      "type": "tv",
+      "id": 94997,
+      "title": "House of the Dragon"
+    },
+    {
+      "type": "tv",
+      "id": 1434,
+      "title": "Family Guy"
+    }
+  ]
+}

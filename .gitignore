@@ -1,0 +1,14 @@
+# Credentials and signing keys must NEVER be committed to a public repository
+*.keystore
+*.jks
+*.p12
+*.pfx
+.env
+.env.*
+app/src/main/assets/tmdb-config.js
+local.properties
+.gradle/
+**/build/
+.idea/
+*.iml
+.DS_Store

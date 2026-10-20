@@ -14,6 +14,7 @@
   const yearOf = s => s ? String(s).slice(0, 4) : '';
   const nowYear = new Date().getFullYear();
   const defaultConfigUrl = 'https://raw.githubusercontent.com/ShinyShinChan/FrameLounge-FireTV/main/remote-config.json';
+  const frameCatalogUrl = 'https://raw.githubusercontent.com/ShinyShinChan/FrameLounge-FireTV/main/framextv-catalog.json';
   const builtInConfig = {
     schema: 1, version: '1.0.0', defaultSource: 'framextv.xyz',
     sources: [
@@ -40,6 +41,25 @@
     const defaultSource=sources.find(x=>x.id===data.defaultSource)?data.defaultSource:sources[0].id;
     return {schema:1,version:String(data.version||'').slice(0,25),defaultSource,sources};
   }
+  // The published FrameXTV title listings, NOT playback tests, decide which tapes appear.
+  // TMDB provides enrichment, but it must not add unlisted movies to the shelves or search.
+  function validFrameCatalog(data) {
+    if(!data || data.schema!==1 || !Array.isArray(data.items) || data.items.length>5000) throw new Error('Invalid FrameXTV catalog');
+    const seen=new Set(), items=[];
+    for(const r of data.items) {
+      const type=String(r.type||''), id=Number(r.id), title=String(r.title||'').trim();
+      if(!['movie','tv'].includes(type) || !Number.isSafeInteger(id) || id<=0 || id>999999999 || title.length<1 || title.length>170) continue;
+      const k=type+':'+id;
+      if(seen.has(k))continue;seen.add(k);
+      items.push({type,id,title,year:String(r.year||'').slice(0,4),genre:type==='tv'?'Series':'Movie',poster:null,backdrop:null,overview:'',rating:null,demo:false});
+    }
+    if(items.length===0) throw new Error('No listed FrameXTV titles in feed');
+    return {schema:1,version:String(data.version||'unknown').slice(0,60),items};
+  }
+  const starterFrameCatalog=validFrameCatalog(
+{"schema":1,"version":"2026-10-20-starter","source":"FrameXTV publicly listed titles (starter snapshot; not stream-tested)","items":[{"type":"movie","id":1153576,"title":"Street Fighter"},{"type":"movie","id":1148365,"title":"Matchbox the Movie"},{"type":"movie","id":1561726,"title":"Masterplan"},{"type":"movie","id":1108427,"title":"Moana"},{"type":"movie","id":1765072,"title":"You Can See Everything"},{"type":"movie","id":1101412,"title":"Fall 2: Deadpoint"},{"type":"movie","id":299536,"title":"Avengers: Infinity War"},{"type":"movie","id":299534,"title":"Avengers: Endgame"},{"type":"movie","id":157336,"title":"Interstellar"},{"type":"movie","id":24428,"title":"The Avengers"},{"type":"tv","id":1396,"title":"Breaking Bad"},{"type":"tv","id":456,"title":"The Simpsons"},{"type":"tv","id":1399,"title":"Game of Thrones"},{"type":"tv","id":1402,"title":"The Walking Dead"},{"type":"tv","id":2316,"title":"The Office"},{"type":"tv","id":66732,"title":"Stranger Things"},{"type":"tv","id":94997,"title":"House of the Dragon"},{"type":"tv","id":1434,"title":"Family Guy"}]}  );
+  let cachedFrameCatalog;
+  try {cachedFrameCatalog=validFrameCatalog(getStore('frameCatalog',null));}catch(_) {cachedFrameCatalog=starterFrameCatalog;}
   const cachedRemote = getStore('remoteConfig', null);
   let startingConfig = builtInConfig;
   try { if(cachedRemote) startingConfig=validateConfig(cachedRemote); } catch(_) {}
@@ -98,14 +118,92 @@
     [71663,'Invincible',2021,'Animation','A teenager discovers what being a superhero really means.']
   ]);
   const library = new Map([...movieSeed, ...showSeed].map(x => [x.type + ':' + x.id, x]));
+  // Keep a small, device-local snapshot of each saved TMDB title. Without this,
+  // saved IDs outside the starter catalog would show a blank shelf while offline.
+  const cachedShelfItems = getStore('savedShelfItems', {});
+  if(cachedShelfItems && typeof cachedShelfItems === 'object' && !Array.isArray(cachedShelfItems)) {
+    for(const [k,v] of Object.entries(cachedShelfItems)) {
+      if(!/^(movie|tv):[0-9]{1,12}$/.test(k) || !v || !Number.isSafeInteger(Number(v.id)) || k!==v.type+':'+v.id) continue;
+      const old=library.get(k);
+      library.set(k,{...(old||{}), ...v});
+    }
+  }
+  function persistShelfItems() {
+    // Only store title metadata for selected items, not all TMDB results or credentials.
+    const keys=[...new Set([...state.favorites,...state.likes,...state.dislikes])].slice(0,600);
+    const items={};
+    for(const k of keys) {
+      const t=library.get(k);
+      if(!t)continue;
+      const {id,type,title,year,genre,overview,poster,backdrop,rating,seasonCount}=t;
+      items[k]={id,type,title,year,genre,overview,poster,backdrop,rating,seasonCount};
+    }
+    saveStore('savedShelfItems',items);
+  }
+
   const state = {
     route:'home', detail:null, playing:null, currentSeason:1,
     episodes:null, seasonLoading:false, search:'', searchResults:null,
     key:getStore('tmdbKey',''), domain:getStore('playerDomain','') || startingConfig.defaultSource,
     config:startingConfig, configUrl:getStore('configUrl',defaultConfigUrl), configChecked:getStore('configChecked',0), configStatus:'Using saved player settings',
-    favorites:getStore('favorites',[]), history:getStore('history',[]),
-    rows:null, loading:false, message:null, lastFocus:null, customSource:getStore('customSource','')
+    favorites:getStore('favorites',[]), likes:getStore('likes',[]), dislikes:getStore('dislikes',[]), history:getStore('history',[]),
+    rows:null, loading:false, message:null, lastFocus:null, customSource:getStore('customSource',''),
+    frameCatalog:cachedFrameCatalog, allowedKeys:new Set(cachedFrameCatalog.items.map(x=>x.type+':'+x.id)),
+    catalogStatus:'Using saved FrameXTV title list', catalogChecked:0
   };
+  // Prefer cached enriched TMDB art when a listed title has already been saved.
+  function mergeFeedTitles(feed) {
+    for(const entry of feed.items) {
+      const k=entry.type+':'+entry.id;
+      const prior=library.get(k);
+      if(prior)library.set(k,{...entry,...prior});
+      else library.set(k,entry);
+    }
+  }
+  mergeFeedTitles(state.frameCatalog);
+  function isListed(t) {return !!t && state.allowedKeys.has(keyOf(t));}
+  function listedTitles(type) {
+    return state.frameCatalog.items.filter(t=>!type || t.type===type).map(x=>library.get(keyOf(x))).filter(Boolean);
+  }
+  async function refreshFrameCatalog(force=false) {
+    // This checks only if a title link appears in FrameXTV's published pages.
+    // There are deliberately no per-title HEAD requests, streams probes, or player health checks.
+    if(!force && Date.now()-state.catalogChecked<6*60*60*1000) return;
+    state.catalogChecked=Date.now();
+    try {
+      const res=await fetch(frameCatalogUrl+(frameCatalogUrl.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const feed=validFrameCatalog(await res.json());
+      state.frameCatalog=feed;state.allowedKeys=new Set(feed.items.map(x=>keyOf(x)));
+      mergeFeedTitles(feed);saveStore('frameCatalog',{schema:1,version:feed.version,items:feed.items});
+      state.catalogStatus='FrameXTV listed-title feed updated: '+feed.version;
+      if(force)showMessage('FrameXTV listings refreshed. No stream testing needed.');
+      if(!state.playing && !state.detail)render();
+      if(state.key)enrichListedPosters();
+    }catch(err){
+      state.catalogStatus='Using saved FrameXTV listings ('+String(err.message||'network error').slice(0,60)+')';
+      if(force)showMessage('Could not refresh listings. Saved tapes remain available.');
+    }
+  }
+  let enriching=false;
+  async function enrichListedPosters(){
+    if(enriching || !state.key)return;
+    enriching=true;
+    try{
+      const pending=listedTitles().filter(t=>!t.poster).slice(0,65);
+      let index=0;
+      await Promise.all(Array.from({length:3},async()=>{
+        while(index<pending.length){
+          const t=pending[index++];
+          try{const info=await tmdb(`${t.type}/${t.id}?language=en-US`);
+            if(isListed(t))mergeTitle(normalize(info,t.type));
+          }catch(_){}
+          await new Promise(resolve=>setTimeout(resolve,260));
+        }
+      }));
+      if(!state.playing && !state.detail && ['home','movies','series','search'].includes(state.route))render(state.lastFocus);
+    }finally {enriching=false;}
+  }
   const icons = {
     home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
     movies:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4"/>',
@@ -121,7 +219,10 @@
     close:'<path d="M5 5 19 19M19 5 5 19"/>',
     keyboard:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M7 13h.01M11 13h.01M15 13h.01M6 16h12"/>',
     spark:'<path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/>',
-    info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/>'
+    info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/>',
+    like:'<path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3zM7 10l5-8a3 3 0 0 1 2 3v3h6a2 2 0 0 1 2 2l-1.1 9a2 2 0 0 1-2 2H7"/>',
+    dislike:'<path d="M7 14V3H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3zM7 14l5 8a3 3 0 0 0 2-3v-3h6a2 2 0 0 0 2-2l-1.1-9a2 2 0 0 0-2-2H7"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/>'
   };
   function icon(name, size=22) { return `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icons[name] || icons.spark}</svg>`; }
   const keyOf = t => t.type + ':' + t.id;
@@ -137,7 +238,7 @@
       seasonCount:x.number_of_seasons || 0, seasons:x.seasons || null, demo:false
     };
   }
-  function mergeTitle(t) { if (!t || !t.id) return null; const id=keyOf(t), old=library.get(id); const next={...(old||{}),...t}; library.set(id,next); return next; }
+  function mergeTitle(t) { if (!t || !t.id) return null; const id=keyOf(t), old=library.get(id); const next={...(old||{}),...t}; library.set(id,next); if(state.favorites.includes(id)||state.likes.includes(id)||state.dislikes.includes(id))persistShelfItems(); return next; }
   function poster(t, size='w342') { return t.poster ? `https://image.tmdb.org/t/p/${size}/${t.poster.replace(/^\//,'')}` : ''; }
   function backdrop(t) { return t.backdrop ? `https://image.tmdb.org/t/p/w1280/${t.backdrop.replace(/^\//,'')}` : ''; }
   function paint(t) { const h=(Number(t.id)*47)%360; return `--shade1:hsl(${h} 39% 23%);--shade2:hsl(${(h+43)%360} 48% 11%)`; }
@@ -145,11 +246,11 @@
   function shell(content) {
     app.innerHTML = `<div class="layout">
       <aside class="sidebar">
-        <div class="brand"><div class="brand-mark">F<span>✦</span></div><div class="brand-words">FRAME<br><em>LOUNGE</em></div></div>
+        <div class="brand"><img class="brand-vhs" src="vhs-logo.png" alt="TV VHS cassette"><div class="brand-words">FRAME<br><em>LOUNGE</em><small>THE VIDEO SHELF</small></div></div>
         <div class="sidebar-heading">DISCOVER</div>
         <nav class="nav">
           ${navItem('home','Home','home')}${navItem('movies','Movies','movies')}${navItem('series','Series','series')}
-          ${navItem('search','Search','search')}${navItem('mylist','My List','list')}
+          ${navItem('search','Search','search')}${navItem('mylist','My Shelf','list')}
         </nav>
         <div class="sidebar-bottom">${navItem('settings','Settings','settings')}
           <div class="source-stamp"><span class="online-dot"></span> ${state.key ? 'TMDB CONNECTED' : 'STARTER LIBRARY'}</div>
@@ -180,21 +281,40 @@
   }
   function rememberFocus() { const el=document.activeElement; if (el?.dataset?.focus) state.lastFocus=el.dataset.focus; }
   function header(eyebrow,title,description) { return `<div class="screen-intro"><p class="eyebrow">${html(eyebrow)}</p><h1>${html(title)}</h1>${description?`<p>${html(description)}</p>`:''}</div>`; }
-  function card(t, i=0) {
-    const img=poster(t);
-    return `<button class="poster-card" data-action="detail" data-type="${t.type}" data-id="${t.id}" data-focus="title-${keyOf(t)}" aria-label="${html(t.title)}">
-      <span class="poster-art" style="${paint(t)}">
-        ${img?`<img loading="lazy" src="${html(img)}" alt="" onerror="this.style.display='none'">`:''}
-        <span class="poster-sky"></span><span class="poster-type">${t.type==='tv'?'SERIES':'MOVIE'}</span>
-        <span class="poster-letter">${html(t.title.slice(0,1).toUpperCase())}</span><span class="poster-title-art">${html(t.title)}</span>
+  // A 3D-inspired VHS rental sleeve. Poster art is the front; the vertical spine carries the title.
+  // The same tape art is reused in browse rows and on the full details screen.
+  function tapeArt(t, large=false) {
+    const img=poster(t,large?'w500':'w342');
+    const key=keyOf(t);
+    const reaction=state.likes.includes(key)?'LIKE':state.dislikes.includes(key)?'DISLIKE':'';
+    const saved=state.favorites.includes(key);
+    return `<span class="vhs-case ${large?'vhs-case-large':''}" style="${paint(t)}">
+      <span class="vhs-spine" aria-hidden="true"><span class="vhs-spine-brand">FRAME LOUNGE</span><span class="vhs-spine-title">${html(t.title)}</span><span class="vhs-spine-number">${html(t.year||'VHS')}</span></span>
+      <span class="vhs-cover">
+        <span class="poster-art" style="${paint(t)}">
+          ${img?`<img loading="lazy" src="${html(img)}" alt="" onerror="this.style.display='none'">`:''}
+          <span class="poster-sky"></span>
+          <span class="poster-letter">${html(t.title.slice(0,1).toUpperCase())}</span>
+          <span class="poster-title-art">${html(t.title)}</span>
+        </span>
+        <span class="vhs-header-sticker">HOME VIDEO</span>
+        <span class="vhs-bottom-strip"><span>VHS</span><span>${html(t.year|| (t.type==='tv'?'SERIES':'FILM'))}</span></span>
+        ${saved?`<span class="vhs-tag">WATCH LATER</span>`:''}
+        ${reaction?`<span class="vhs-reaction ${reaction==='LIKE'?'is-liked':'is-disliked'}">${reaction==='LIKE'?'♥':'−'}</span>`:''}
       </span>
+    </span>`;
+  }
+  function card(t, i=0) {
+    return `<button class="poster-card vhs-card" data-action="detail" data-type="${t.type}" data-id="${t.id}" data-focus="title-${keyOf(t)}" aria-label="Open ${html(t.title)} details">
+      ${tapeArt(t)}
       <span class="poster-caption"><strong>${html(t.title)}</strong><small>${html(t.year)}${t.rating?` · ★ ${t.rating}`:''}</small></span>
     </button>`;
   }
   function row(title, items, id='') {
-    if (!items || !items.length) return '';
-    return `<section class="catalog-row"><div class="row-heading"><h2>${html(title)}</h2><span class="row-count">${items.length} titles</span></div>
-      <div class="carousel-row" data-row="${html(id||title)}">${unique(items).map(card).join('')}</div></section>`;
+    const listed=unique((items||[]).filter(isListed),40);
+    if (!listed.length) return '';
+    return `<section class="catalog-row"><div class="row-heading"><h2>${html(title)}</h2><span class="row-count">${listed.length} titles</span></div>
+      <div class="carousel-row" data-row="${html(id||title)}">${listed.map(card).join('')}</div></section>`;
   }
   function navPill(title, subtitle='') { return `<div class="top-pill">${icon('spark',15)} ${html(title)}${subtitle?`<span>${html(subtitle)}</span>`:''}</div>`; }
   function hero(t) {
@@ -204,7 +324,7 @@
       <div class="hero-content">${navPill('TONIGHT’S FEATURE',state.key?'Powered by TMDB':'Explore the starter library')}
         <div class="hero-mini">${t.type==='tv'?'TV SERIES':'FEATURE FILM'} <i></i> ${html(t.year)} <i></i> ${html(t.genre)}</div>
         <h1>${html(t.title)}</h1><p class="hero-overview">${html(t.overview||'Find your next great watch.')}</p>
-        <div class="hero-buttons"><button class="action-button primary" data-action="hero-play" data-id="${t.id}" data-type="${t.type}" data-focus="hero-play">${icon('play',22)} ${t.type==='tv'?'View Episodes':'Watch Now'}</button>
+        <div class="hero-buttons"><button class="action-button primary" data-action="hero-play" data-id="${t.id}" data-type="${t.type}" data-focus="hero-play">${icon('play',22)} Open VHS Tape</button>
         <button class="action-button secondary" data-action="detail" data-id="${t.id}" data-type="${t.type}" data-focus="hero-details">${icon('info',22)} More Info</button></div>
       </div><div class="hero-bottom"></div>
     </section>`;
@@ -228,44 +348,47 @@
     ];
   }
   function getRows(route) {
-    const rows=starterRows(route);
-    if (!state.rows) return rows;
-    const remote=state.rows;
-    if (route==='movies') return [
-      ['Popular Movies',remote.popularMovies],['Top Rated Movies',remote.topMovies],['Sci-Fi',remote.scifi],['Action',remote.action],['Animation',remote.animation],...rows
+    const movies=listedTitles('movie'), series=listedTitles('tv'), remote=state.rows;
+    if(route==='movies')return [
+      ['Listed on FrameXTV · Movies',movies],
+      ...(remote?[['FrameXTV · Popular Movies',remote.popularMovies],['Sci-Fi Movies',remote.scifi],['Action Movies',remote.action]]:[])
     ];
-    if (route==='series') return [
-      ['Popular Series',remote.popularTV],['Top Rated Series',remote.topTV],['Drama Series',remote.dramaTV],...rows
+    if(route==='series')return [
+      ['Listed on FrameXTV · Series',series],
+      ...(remote?[['FrameXTV · Popular Series',remote.popularTV],['Drama Series',remote.dramaTV]]:[])
     ];
     return [
-      ['Trending Now',remote.trending],['Popular Movies',remote.popularMovies],['Binge-Worthy Series',remote.popularTV],
-      ['Sci-Fi Worlds',remote.scifi],['Top Rated Movies',remote.topMovies],['Animation',remote.animation],...rows
+      ['FrameXTV · Featured Movies',movies.slice(0,25)],
+      ['FrameXTV · Series',series.slice(0,25)],
+      ...(remote?[['Trending on TMDB & Listed on FrameXTV',remote.trending],['Popular Movies',remote.popularMovies],['Popular TV',remote.popularTV]]:[]),
+      ['Explore More VHS Tapes', [...movies.slice(25),...series.slice(25)]]
     ];
   }
   function catalogScreen(route) {
     const history=historyTitles();
-    const first = route==='home' ? (state.rows?.trending?.find(t=>t.type==='movie') || movieSeed[3])
-      : route==='movies' ? (state.rows?.popularMovies?.[0] || movieSeed[2])
-      : (state.rows?.popularTV?.[0] || showSeed[4]);
+    const first=route==='series' ? listedTitles('tv')[0] : listedTitles('movie')[0] || listedTitles('tv')[0];
     const title=route==='movies'?'Movies':route==='series'?'Series':'Home';
     const rows=getRows(route);
     return `<div class="top-bar"><span>${icon('spark',17)} FRAME LOUNGE / ${title.toUpperCase()}</span><span class="top-date">${nowYear} EDITION</span></div>
-      ${hero(first)}
+      ${first?hero(first):''}
       <div class="rows-wrap">
       ${route==='home' && history.length?row('Continue Watching · Recently Played',history):''}
-      ${route==='home' && state.favorites.length?row('Your List',favoriteTitles()):''}
-      ${!state.key?`<div class="setup-nudge"><span>${icon('info',22)}</span><div><strong>Discover thousands more titles.</strong><p>Add a free TMDB API key in Settings for live movie posters, fresh categories, search, ratings, and real episode lists. Sample titles work without it.</p></div><button data-action="route" data-route="settings" data-focus="setup-link">Set Up ${icon('chevron',16)}</button></div>`:''}
+      ${route==='home' && state.favorites.length?row('Watch Later · Your VHS Queue',favoriteTitles()):''}
+      ${route==='home' && state.likes.length?row('Tapes You Liked',likedTitles()):''}
+      ${!state.key?`<div class="setup-nudge"><span>${icon('info',22)}</span><div><strong>Discover thousands more titles.</strong><p>Add a free TMDB API key in Settings for live movie posters, fresh categories, search, ratings, and real episode lists. Only FrameXTV-listed titles appear on the shelves.</p></div><button data-action="route" data-route="settings" data-focus="setup-link">Set Up ${icon('chevron',16)}</button></div>`:''}
       ${rows.map(([name,items],idx)=>row(name,items,`${route}-${idx}`)).join('')}
-      <div class="footer-note">Poster and title data: TMDB when connected. Playback: external FrameXTV embed. No video is hosted by Frame Lounge. Use sources you are authorized to access.</div>
+      <div class="footer-note">These shelves contain only titles linked in FrameXTV's public listings. Link present = presumed playable; no playback verification is performed. TMDB only adds poster and description information. Streams may still fail.</div>
       </div>`;
   }
-  function historyTitles() { return state.history.map(h => library.get(h.key)||h.item).filter(Boolean).slice(0,14); }
-  function favoriteTitles() { return state.favorites.map(k=>library.get(k)).filter(Boolean); }
+  function historyTitles() { return state.history.map(h => library.get(h.key)||h.item).filter(isListed).slice(0,14); }
+  function favoriteTitles() { return state.favorites.map(k=>library.get(k)).filter(isListed); }
+  function likedTitles() { return state.likes.map(k=>library.get(k)).filter(isListed); }
+  function dislikedTitles() { return state.dislikes.map(k=>library.get(k)).filter(isListed); }
   function myListScreen() {
-    const favorites=favoriteTitles();
-    return `<div class="top-bar"><span>FRAME LOUNGE / MY LIST</span></div>${header('PERSONAL COLLECTION','My List','Keep your favorites in one place on this Fire Stick.')}
-      ${favorites.length?row('Saved for Later',favorites):`<div class="empty-state">${icon('list',48)}<h2>Your list is looking a little empty</h2><p>Open any title and choose “Add to My List.”</p><button class="action-button primary" data-action="route" data-route="home" data-focus="empty-home">Browse Titles</button></div>`}
-      ${state.history.length?row('Recently Played',historyTitles()):''}`;
+    const later=favoriteTitles(), liked=likedTitles(), disliked=dislikedTitles();
+    const any=later.length||liked.length||disliked.length||state.history.length;
+    return `<div class="top-bar"><span>FRAME LOUNGE / MY SHELF</span></div>${header('YOUR PERSONAL VHS COLLECTION','My Shelf','Your Watch Later queue, likes, and dislikes stay on this Fire Stick.')}
+      ${any?`<div class="rows-wrap">${row('Watch Later',later)}${row('Liked Tapes',liked)}${row('Disliked Tapes',disliked)}${state.history.length?row('Recently Played',historyTitles()):''}</div>`:`<div class="empty-state">${icon('list',48)}<h2>Nothing on your shelf yet</h2><p>Open a VHS tape and select Like, Dislike, or Watch Later to organize your collection.</p><button class="action-button primary" data-action="route" data-route="home" data-focus="empty-home">Browse VHS Tapes</button></div>`}`;
   }
   function searchScreen() {
     return `<div class="top-bar"><span>FRAME LOUNGE / SEARCH</span></div>${header('FIND SOMETHING GOOD','Search the Library',state.key?'Search movies and TV series from TMDB.':'Search starter titles. Connect TMDB in Settings for thousands more.')}
@@ -274,10 +397,10 @@
   }
   function searchResultsHtml() {
     const terms=state.search.trim().toLowerCase();
-    if (!terms) return row('Explore Popular Titles',unique([...movieSeed.slice(0,10),...showSeed.slice(0,10)]));
+    if (!terms) return row('Explore FrameXTV Titles',listedTitles().slice(0,30));
     let results=state.searchResults || [];
-    const local=Array.from(library.values()).filter(t=>t.title.toLowerCase().includes(terms));
-    results=unique([...results,...local],60);
+    const local=listedTitles().filter(t=>t.title.toLowerCase().includes(terms));
+    results=unique([...results,...local].filter(isListed),60);
     if (results.length) return row(`Search results for “${state.search}”`,results);
     return `<div class="empty-state"><h2>No matching titles yet</h2><p>${state.key?'Try another search term.':'Try another search term, or add a TMDB key to unlock the full catalog.'}</p></div>`;
   }
@@ -297,33 +420,40 @@
         <div class="settings-control"><input id="config-url" data-focus="config-url" type="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://raw.githubusercontent.com/.../remote-config.json" value="${html(state.configUrl)}"><button class="action-button primary small" data-action="save-config" data-focus="save-config">Save & Check</button><button class="action-button secondary small" data-action="refresh-config" data-focus="refresh-config">Refresh Now</button></div>
         <p class="setting-help">${html(state.configStatus)} · Local configuration: ${html(state.config.version)} · ${state.config.sources.length} sources configured. Use “Try Other Source” on the playback screen when a provider fails. An iframe cannot always report a broken stream back to the app.</p>
       </section>
+      <section class="setting-panel"><div class="setting-title">${icon('movies',22)} FrameXTV Listings</div>
+        <p>Only titles with links in FrameXTV's publicly listed movie and TV catalog appear on the VHS shelves. A listed title is presumed playable, without probing video streams or showing verification warnings. The public GitHub listing refreshes daily, and this app downloads the latest list on launch.</p>
+        <div class="settings-control"><button class="action-button primary small" data-action="refresh-catalog" data-focus="refresh-catalog">Refresh FrameXTV Listings</button></div>
+        <p class="setting-help">${html(state.catalogStatus)} · ${state.frameCatalog.items.length} listed titles · ${html(state.frameCatalog.version)}. A published link is not a guarantee that the upstream video will work.</p>
+      </section>
       <section class="setting-panel"><div class="setting-title">${icon('settings',22)} Storage & Information</div>
-        <p>Favorites and recently played items are kept locally on your Fire Stick. This is an independent, unofficial personal interface, not affiliated with TMDB or FrameXTV.</p>
-        <div class="settings-control"><button class="action-button secondary small" data-action="clear-history" data-focus="clear-history">Clear Watch History</button><button class="action-button secondary small" data-action="clear-list" data-focus="clear-list">Clear My List</button></div>
+        <p>Likes, dislikes, Watch Later, and recently played items are kept locally on your Fire Stick. This is an independent, unofficial personal interface, not affiliated with TMDB or FrameXTV.</p>
+        <div class="settings-control"><button class="action-button secondary small" data-action="clear-history" data-focus="clear-history">Clear Watch History</button><button class="action-button secondary small" data-action="clear-list" data-focus="clear-list">Clear Watch Later</button></div>
         <p class="setting-help">TMDB attribution: This product uses the TMDB API but is not endorsed or certified by TMDB. Video availability and playback are controlled by FrameXTV and its upstream providers. Streams may fail, be unsupported by Fire OS WebView, or be unavailable.</p>
       </section>`;
   }
   function detailScreen(t) {
     const isTV=t.type==='tv';
-    const bg=backdrop(t); const favorite=state.favorites.includes(keyOf(t));
+    const bg=backdrop(t), k=keyOf(t);
+    const later=state.favorites.includes(k), liked=state.likes.includes(k), disliked=state.dislikes.includes(k);
     return `<div class="detail-view"><div class="detail-hero" style="${paint(t)};${bg?`--hero-bg:url('${bg}');`:''}">
-      <button class="breadcrumb" data-action="close-detail" data-focus="detail-back">${icon('back',21)} Back to ${state.route==='home'?'Home':state.route==='series'?'Series':state.route==='movies'?'Movies':state.route==='search'?'Search':'My List'}</button>
+      <button class="breadcrumb" data-action="close-detail" data-focus="detail-back">${icon('back',21)} Back to the shelf</button>
       <div class="detail-flex">
-        <div class="detail-poster">${cardArt(t)}</div>
+        <div class="detail-poster">${tapeArt(t,true)}</div>
         <div class="detail-info"><div class="hero-mini">${isTV?'TV SERIES':'FEATURE FILM'} <i></i> ${html(t.year||'')} ${t.rating?`<i></i> ★ ${html(t.rating)}/10`:''}</div>
           <h1>${html(t.title)}</h1><div class="detail-genre">${html(t.genre||'Entertainment')}</div>
-          <p class="detail-synopsis">${html(t.overview||'Open this title to view available playback sources.')}</p>
-          <div class="hero-buttons"><button class="action-button primary" data-action="play" data-focus="detail-play">${icon('play',22)} ${isTV?'Play Selected Episode':'Watch Now'}</button>
-            <button class="action-button secondary" data-action="favorite" data-focus="detail-fav">${icon(favorite?'check':'plus',21)} ${favorite?'In My List':'Add to My List'}</button></div>
+          <p class="detail-synopsis">${html(t.overview||'Choose a tape to see the information and playback options.')}</p>
+          <div class="vhs-detail-buttons">
+            <button class="action-button primary" data-action="play" data-focus="detail-play">${icon('play',22)} ${isTV?'Play Episode':'Play Movie'}</button>
+            <button class="action-button secondary ${later?'action-active':''}" data-action="favorite" data-focus="detail-fav" aria-pressed="${later}">${icon(later?'check':'clock',20)} ${later?'Saved for Later':'Watch Later'}</button>
+            <button class="action-button secondary ${liked?'action-active like-active':''}" data-action="like" data-focus="detail-like" aria-pressed="${liked}">${icon('like',20)} ${liked?'Liked':'Like'}</button>
+            <button class="action-button secondary ${disliked?'action-active dislike-active':''}" data-action="dislike" data-focus="detail-dislike" aria-pressed="${disliked}">${icon('dislike',20)} ${disliked?'Disliked':'Dislike'}</button>
+          </div>
+          <p class="vhs-storage-note">Likes, dislikes, and Watch Later are saved locally on this Fire Stick — not uploaded to GitHub.</p>
           ${isTV?`<div class="detail-episode-selected">Selected: Season ${state.currentSeason}, Episode ${state.currentEpisode||1}</div>`:''}
         </div>
       </div>
       </div>${isTV?episodeSection(t):''}
-      <div class="detail-bottom">Playback uses an external FrameXTV embed. Video playback is subject to provider availability and permissions.</div></div>`;
-  }
-  function cardArt(t) {
-    const img=poster(t,'w500');
-    return `<div class="poster-art poster-large" style="${paint(t)}">${img?`<img src="${html(img)}" alt="">`:''}<div class="poster-sky"></div><span class="poster-type">${t.type==='tv'?'SERIES':'MOVIE'}</span><span class="poster-letter">${html(t.title.slice(0,1))}</span><span class="poster-title-art">${html(t.title)}</span></div>`;
+      <div class="detail-bottom">Playback uses an external FrameXTV embed. Stream availability and rights depend on the provider.</div></div>`;
   }
   function episodeSection(t) {
     const seasons=t.seasons?.filter(s=>s.season_number>0) || null;
@@ -375,7 +505,7 @@
     if(r==='search') focusByKey('search-input');
   }
   async function openDetail(t) {
-    if(!t)return;
+    if(!isListed(t)){showMessage('This title is not in the FrameXTV published listings.');return;}
     rememberFocus();state.detail=mergeTitle(t); state.currentSeason=1;state.currentEpisode=1;state.episodes=null;
     render('detail-play');
     if (state.key) {
@@ -397,7 +527,21 @@
     drawPlayer();
   }
   function closePlayer() { if(!state.playing)return;const frame=$('#player-iframe');if(frame)frame.src='about:blank';state.playing=null;$('#overlay-root').innerHTML='';focusByKey('detail-play'); }
-  function toggleFavorite(){ if(!state.detail)return;const k=keyOf(state.detail);if(state.favorites.includes(k))state.favorites=state.favorites.filter(x=>x!==k);else state.favorites.unshift(k);saveStore('favorites',state.favorites);render('detail-fav'); }
+  function toggleFavorite(){
+    if(!state.detail)return;
+    const k=keyOf(state.detail);
+    state.favorites=state.favorites.includes(k)?state.favorites.filter(x=>x!==k):[k,...state.favorites];
+    saveStore('favorites',state.favorites);persistShelfItems();render('detail-fav');
+  }
+  function toggleReaction(kind){
+    if(!state.detail)return;
+    const k=keyOf(state.detail);
+    const on=kind==='like'?'likes':'dislikes', opposite=kind==='like'?'dislikes':'likes';
+    state[on]=state[on].includes(k)?state[on].filter(x=>x!==k):[k,...state[on]];
+    if(state[on].includes(k))state[opposite]=state[opposite].filter(x=>x!==k);
+    saveStore('likes',state.likes);saveStore('dislikes',state.dislikes);persistShelfItems();
+    render('detail-'+kind);
+  }
   function showMessage(text) { state.message=text;let toast=$('.toast');if(toast)toast.textContent=text;else { toast=document.createElement('div');toast.className='toast';toast.textContent=text;$('.layout')?.appendChild(toast); }clearTimeout(showMessage.t);showMessage.t=setTimeout(()=>{state.message=null;toast?.remove();},4200); }
   function setDomain(value) {
     if(!state.config.sources.some(x=>x.id===value))return;
@@ -466,13 +610,13 @@
       };
       const entries=await Promise.all(Object.entries(queries).map(async ([name,path])=>{
         try { const d=await tmdb(path);const type=name==='trending'?null:name.toLowerCase().includes('tv')?'tv':'movie';
-          return [name,unique((d.results||[]).map(x=>mergeTitle(normalize(x,type))).filter(Boolean),24)]; }
+          return [name,unique((d.results||[]).map(x=>normalize(x,type)).filter(isListed).map(mergeTitle).filter(Boolean),24)]; }
         catch(_) {return [name,[]];}
       }));
       state.rows=Object.fromEntries(entries);
-      showMessage('TMDB connected. Live catalog loaded.');
+      showMessage('TMDB connected. Artwork for FrameXTV-listed titles is loading.');
     }catch(err){state.rows=null;showMessage('TMDB connection failed. Check your API key and network.');}
-    finally{state.loading=false;if(!state.detail&&!state.playing)render();}
+    finally{state.loading=false;if(!state.detail&&!state.playing)render();if(state.key)enrichListedPosters();}
   }
   async function loadEpisodes(season) {
     if(!state.detail||state.detail.type!=='tv'||!state.key)return;
@@ -490,7 +634,7 @@
     if(!state.key || !term.trim()){state.searchResults=null;refreshSearchResults();return;}
     try {const d=await tmdb('search/multi?query='+urlText(term)+'&include_adult=false&language=en-US');
       if(serial!==searchSerial || state.route!=='search')return;
-      state.searchResults=(d.results||[]).map(x=>mergeTitle(normalize(x))).filter(Boolean);
+      state.searchResults=(d.results||[]).map(x=>normalize(x)).filter(isListed).map(mergeTitle).filter(Boolean);
       refreshSearchResults();
     }catch(_){if(serial===searchSerial){state.searchResults=[];refreshSearchResults();}}
   }
@@ -527,11 +671,12 @@
     const action=btn.dataset.action;
     if(action==='route'){changeRoute(btn.dataset.route);return;}
     if(action==='detail' || action==='hero-play'){
-      const t=library.get(`${btn.dataset.type}:${btn.dataset.id}`);if(t){await openDetail(t);if(action==='hero-play'&&t.type==='movie')openPlayer();}return;
+      const t=library.get(`${btn.dataset.type}:${btn.dataset.id}`);if(t){await openDetail(t);}return;
     }
     if(action==='close-detail'){window.fireTvBack();return;}
     if(action==='play'){openPlayer();return;}
     if(action==='favorite'){toggleFavorite();return;}
+    if(action==='like' || action==='dislike'){toggleReaction(action);return;}
     if(action==='season'){state.currentSeason=Number(btn.dataset.season);state.currentEpisode=1;state.episodes=null;
       if(state.key)loadEpisodes(state.currentSeason);else render(`season-${state.currentSeason}`);return;}
     if(action==='episode'){state.currentEpisode=Number(btn.dataset.episode);render(`episode-${state.currentEpisode}`);return;}
@@ -542,12 +687,13 @@
     if(action==='next-source'){switchSource();return;}
     if(action==='save-config'){const u=$('#config-url')?.value.trim()||'';state.configUrl=u;saveStore('configUrl',u);state.configChecked=0;render('refresh-config');refreshRemoteConfig(true);return;}
     if(action==='refresh-config'){refreshRemoteConfig(true);return;}
+    if(action==='refresh-catalog'){refreshFrameCatalog(true);return;}
     if(action==='save-api'){
       const key=$('#api-key')?.value.trim()||'';if(!key){showMessage('Enter a TMDB API key first.');return;}
       state.key=key;saveStore('tmdbKey',key);state.rows=null;render('save-api');connectCatalog();return;}
     if(action==='clear-api'){state.key='';state.rows=null;saveStore('tmdbKey','');render('api-key');showMessage('TMDB key removed. Starter library active.');return;}
-    if(action==='clear-history'){state.history=[];saveStore('history',[]);showMessage('Watch history cleared.');return;}
-    if(action==='clear-list'){state.favorites=[];saveStore('favorites',[]);showMessage('My List cleared.');return;}
+    if(action==='clear-history'){state.history=[];saveStore('history',[]);render('clear-history');showMessage('Watch history cleared.');return;}
+    if(action==='clear-list'){state.favorites=[];saveStore('favorites',[]);persistShelfItems();render('clear-list');showMessage('Watch Later cleared.');return;}
   });
   let searchTimer;
   document.addEventListener('input',ev=>{
@@ -597,7 +743,7 @@
   }
   // Fire TV local player cannot open external browser windows. Playback controls stay in the embedded source.
   // Check again when Fire TV brings the app back to the foreground, without polling in the background.
-  window.fireTvAppResume = () => { refreshRemoteConfig(); };
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshRemoteConfig(); });
-  render();refreshRemoteConfig();if(state.key)connectCatalog();
+  window.fireTvAppResume = () => { refreshRemoteConfig(); refreshFrameCatalog(); };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) {refreshRemoteConfig();refreshFrameCatalog();} });
+  render();refreshRemoteConfig();refreshFrameCatalog();if(state.key)connectCatalog();
 })();

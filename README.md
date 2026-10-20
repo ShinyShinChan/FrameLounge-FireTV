@@ -1,6 +1,29 @@
-# Frame Lounge — Fire OS app · public-safe v1.3.0
+# Frame Lounge — Fire OS app · VHS Collection Edition v1.5.0 · public-safe
 
-A Fire TV remote-friendly Netflix-style browser for movies and television, with FrameXTV iframe playback. Android source + GitHub Actions APK builder. **The ZIP contains no personal TMDB credentials or signing keys; it is safe to publish as a new public repository.**
+A Fire TV remote-friendly VHS-shelf browser of FrameXTV-listed movies and television, with FrameXTV iframe playback. Android source + GitHub Actions APK builder. **The ZIP contains no personal TMDB credentials or signing keys; it is safe to publish as a new public repository.**
+
+
+## Listed links = playable (no verification requirement)
+
+- Shelves and search show **only links listed on FrameXTV's published Movies/TV pages**. TMDB enriches those listings with artwork, synopses, ratings, and TV episodes, but does not independently add titles.
+- The daily GitHub workflow `.github/workflows/refresh-framextv-catalog.yml` collects public `/movie/{id}` and `/tv/{id}` links and updates `framextv-catalog.json` in this same repository. **It never tests video playback.** Run it once manually after uploading the files to populate a larger library.
+- The Fire Stick downloads that catalog at launch and caches it locally. The bundled starter snapshot lets the app show selected publicly listed titles before the first workflow refresh.
+- We assume a title that FrameXTV lists has a usable player. This is a convenience assumption, not proof that the upstream video works. If a stream is later removed, a playback error is still possible.
+- If GitHub Action updates are rejected, check repository Settings → Actions → General → Workflow permissions; allow Read and write permissions.
+
+## VHS Collection Edition · What changed
+
+- VHS sleeve movie/TV cards with front TMDB posters, printed spine titles, and angled 3D presentation.
+- Details view opens first, then Play / Like / Dislike / Watch Later.
+- Like and Dislike are mutually exclusive, separate from the Watch Later list. The **My Shelf** section shows these lists and history. All stay local in WebView storage; saved TMDB titles and poster paths are cached for offline shelf browsing.
+- New tilted-VHS app icon and matching Fire TV home launcher banner.
+- Updated Android SDK GitHub Action to v4 to avoid deprecated `tools` installation failure.
+
+## Update your EXISTING public GitHub repository (recommended)
+
+Since `ShinyShinChan/FrameLounge-FireTV` already exists, extract this ZIP and run **`UPDATE-EXISTING-WINDOWS.ps1`** from PowerShell after installing Git for Windows, GitHub CLI (`gh`), and Python. Sign in when asked. This script safely checks for credentials, updates the same public repository, and includes the hidden `.github` workflow folder automatically. It does **not** create a second repository. Alternatively, upload the extracted files via the GitHub web interface, taking care to upload the workflows in `.github/workflows/`.
+
+After upload, manually run **Actions → Refresh FrameXTV Listings → Run workflow** once, then **Build Fire TV APK**. The former publishes the current title links to your one public repository; the latter produces an installable APK.
 
 ## Quick start — one public GitHub repository
 
