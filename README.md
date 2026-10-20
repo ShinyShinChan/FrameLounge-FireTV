@@ -1,4 +1,4 @@
-# Frame Lounge — Fire OS app · VHS Collection Edition v1.5.0 · public-safe
+# Frame Lounge — Fire OS app · Expanded Catalog VHS Edition v1.6.0 · public-safe
 
 A Fire TV remote-friendly VHS-shelf browser of FrameXTV-listed movies and television, with FrameXTV iframe playback. Android source + GitHub Actions APK builder. **The ZIP contains no personal TMDB credentials or signing keys; it is safe to publish as a new public repository.**
 
@@ -6,7 +6,7 @@ A Fire TV remote-friendly VHS-shelf browser of FrameXTV-listed movies and televi
 ## Listed links = playable (no verification requirement)
 
 - Shelves and search show **only links listed on FrameXTV's published Movies/TV pages**. TMDB enriches those listings with artwork, synopses, ratings, and TV episodes, but does not independently add titles.
-- The daily GitHub workflow `.github/workflows/refresh-framextv-catalog.yml` collects public `/movie/{id}` and `/tv/{id}` links and updates `framextv-catalog.json` in this same repository. **It never tests video playback.** Run it once manually after uploading the files to populate a larger library.
+- The daily GitHub workflow `.github/workflows/refresh-framextv-catalog.yml` collects public `/movie/{id}` and `/tv/{id}` links and updates `framextv-catalog.json` in this same repository. **It never tests video playback.** Run it manually after uploading the files to collect more titles from the public browsing, genre, and pagination pages. The number of titles ultimately depends on which links the site exposes to the collector.
 - The Fire Stick downloads that catalog at launch and caches it locally. The bundled starter snapshot lets the app show selected publicly listed titles before the first workflow refresh.
 - We assume a title that FrameXTV lists has a usable player. This is a convenience assumption, not proof that the upstream video works. If a stream is later removed, a playback error is still possible.
 - If GitHub Action updates are rejected, check repository Settings → Actions → General → Workflow permissions; allow Read and write permissions.

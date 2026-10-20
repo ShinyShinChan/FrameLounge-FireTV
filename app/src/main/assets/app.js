@@ -190,7 +190,7 @@
     if(enriching || !state.key)return;
     enriching=true;
     try{
-      const pending=listedTitles().filter(t=>!t.poster).slice(0,65);
+      const pending=listedTitles().filter(t=>!t.poster).slice(0,140);
       let index=0;
       await Promise.all(Array.from({length:3},async()=>{
         while(index<pending.length){
@@ -347,21 +347,31 @@
       ['The Animation Station',movies.filter(t=>t.genre==='Animation').concat(shows.filter(t=>t.genre==='Animation'))]
     ];
   }
+  // Keep rows manageable for a TV remote, but never silently truncate a catalog.
+  function shelves(label, titles, batch=32) {
+    const result=[];
+    for(let offset=0;offset<titles.length;offset+=batch) {
+      const part=titles.slice(offset,offset+batch);
+      result.push([label+(offset?` · Shelf ${Math.floor(offset/batch)+1}`:''),part]);
+    }
+    return result;
+  }
   function getRows(route) {
     const movies=listedTitles('movie'), series=listedTitles('tv'), remote=state.rows;
     if(route==='movies')return [
-      ['Listed on FrameXTV · Movies',movies],
+      ...shelves('Listed on FrameXTV · Movies',movies),
       ...(remote?[['FrameXTV · Popular Movies',remote.popularMovies],['Sci-Fi Movies',remote.scifi],['Action Movies',remote.action]]:[])
     ];
     if(route==='series')return [
-      ['Listed on FrameXTV · Series',series],
+      ...shelves('Listed on FrameXTV · Series',series),
       ...(remote?[['FrameXTV · Popular Series',remote.popularTV],['Drama Series',remote.dramaTV]]:[])
     ];
     return [
       ['FrameXTV · Featured Movies',movies.slice(0,25)],
       ['FrameXTV · Series',series.slice(0,25)],
       ...(remote?[['Trending on TMDB & Listed on FrameXTV',remote.trending],['Popular Movies',remote.popularMovies],['Popular TV',remote.popularTV]]:[]),
-      ['Explore More VHS Tapes', [...movies.slice(25),...series.slice(25)]]
+      ...shelves('More Movies on FrameXTV',movies.slice(25)),
+      ...shelves('More Series on FrameXTV',series.slice(25))
     ];
   }
   function catalogScreen(route) {
@@ -400,8 +410,8 @@
     if (!terms) return row('Explore FrameXTV Titles',listedTitles().slice(0,30));
     let results=state.searchResults || [];
     const local=listedTitles().filter(t=>t.title.toLowerCase().includes(terms));
-    results=unique([...results,...local].filter(isListed),60);
-    if (results.length) return row(`Search results for “${state.search}”`,results);
+    results=unique([...results,...local].filter(isListed),5000);
+    if (results.length) return shelves(`Search results for “${state.search}”`,results).map(([label,items],idx)=>row(label,items,`search-${idx}`)).join('');
     return `<div class="empty-state"><h2>No matching titles yet</h2><p>${state.key?'Try another search term.':'Try another search term, or add a TMDB key to unlock the full catalog.'}</p></div>`;
   }
   function settingsScreen() {
