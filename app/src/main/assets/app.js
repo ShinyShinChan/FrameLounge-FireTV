@@ -44,7 +44,7 @@
   // The published FrameXTV title listings, NOT playback tests, decide which tapes appear.
   // TMDB provides enrichment, but it must not add unlisted movies to the shelves or search.
   function validFrameCatalog(data) {
-    if(!data || data.schema!==1 || !Array.isArray(data.items) || data.items.length>5000) throw new Error('Invalid FrameXTV catalog');
+    if(!data || data.schema!==1 || !Array.isArray(data.items) || data.items.length>8000) throw new Error('Invalid FrameXTV catalog');
     const seen=new Set(), items=[];
     for(const r of data.items) {
       const type=String(r.type||''), id=Number(r.id), title=String(r.title||'').trim();
@@ -178,7 +178,7 @@
       mergeFeedTitles(feed);saveStore('frameCatalog',{schema:1,version:feed.version,items:feed.items});
       state.catalogStatus='FrameXTV listed-title feed updated: '+feed.version;
       if(force)showMessage('FrameXTV listings refreshed. No stream testing needed.');
-      if(!state.playing && !state.detail)render();
+      if(!state.playing && !state.detail)render(document.activeElement?.dataset?.focus);
       if(state.key)enrichListedPosters();
     }catch(err){
       state.catalogStatus='Using saved FrameXTV listings ('+String(err.message||'network error').slice(0,60)+')';
@@ -201,7 +201,7 @@
           await new Promise(resolve=>setTimeout(resolve,260));
         }
       }));
-      if(!state.playing && !state.detail && ['home','movies','series','search'].includes(state.route))render(state.lastFocus);
+      if(!state.playing && !state.detail && ['home','movies','series','search'].includes(state.route))render(document.activeElement?.dataset?.focus);
     }finally {enriching=false;}
   }
   const icons = {
@@ -259,7 +259,7 @@
       <main class="main"><div class="main-inner">${content}</div></main>
       <div id="overlay-root"></div>
       ${state.message ? `<div class="toast" role="status">${html(state.message)}</div>` : ''}
-      <div class="remote-help">${icon('keyboard',16)} Use your Fire TV remote • Select to open • Back to return</div>
+      <div class="remote-help">${icon('keyboard',16)} Use ▲ ▼ to change VHS shelves • ◀ ▶ to move across tapes • Select to open</div>
     </div>`;
     if (state.playing) drawPlayer();
   }
@@ -304,17 +304,19 @@
       </span>
     </span>`;
   }
-  function card(t, i=0) {
-    return `<button class="poster-card vhs-card" data-action="detail" data-type="${t.type}" data-id="${t.id}" data-focus="title-${keyOf(t)}" aria-label="Open ${html(t.title)} details">
+  function card(t, i=0, shelfId='catalog') {
+    // One title can appear on several shelves; focus IDs must be unique.
+    return `<button class="poster-card vhs-card" data-action="detail" data-type="${t.type}" data-id="${t.id}" data-focus="title-${html(shelfId)}-${i}-${keyOf(t)}" aria-label="Open ${html(t.title)} details">
       ${tapeArt(t)}
       <span class="poster-caption"><strong>${html(t.title)}</strong><small>${html(t.year)}${t.rating?` · ★ ${t.rating}`:''}</small></span>
     </button>`;
   }
   function row(title, items, id='') {
-    const listed=unique((items||[]).filter(isListed),40);
+    const listed=unique((items||[]).filter(isListed),250);
     if (!listed.length) return '';
+    const shelfId=id||title;
     return `<section class="catalog-row"><div class="row-heading"><h2>${html(title)}</h2><span class="row-count">${listed.length} titles</span></div>
-      <div class="carousel-row" data-row="${html(id||title)}">${listed.map(card).join('')}</div></section>`;
+      <div class="carousel-row" data-row="${html(shelfId)}">${listed.map((item,i)=>card(item,i,shelfId)).join('')}</div></section>`;
   }
   function navPill(title, subtitle='') { return `<div class="top-pill">${icon('spark',15)} ${html(title)}${subtitle?`<span>${html(subtitle)}</span>`:''}</div>`; }
   function hero(t) {
@@ -379,13 +381,13 @@
     const first=route==='series' ? listedTitles('tv')[0] : listedTitles('movie')[0] || listedTitles('tv')[0];
     const title=route==='movies'?'Movies':route==='series'?'Series':'Home';
     const rows=getRows(route);
-    return `<div class="top-bar"><span>${icon('spark',17)} FRAME LOUNGE / ${title.toUpperCase()}</span><span class="top-date">${nowYear} EDITION</span></div>
+    return `<div class="top-bar"><span>${icon('spark',17)} FRAME LOUNGE / ${title.toUpperCase()}</span><span class="top-date">${state.frameCatalog.items.filter(x=>x.type==='movie').length} MOVIES · ${state.frameCatalog.items.filter(x=>x.type==='tv').length} SERIES</span></div>
       ${first?hero(first):''}
       <div class="rows-wrap">
       ${route==='home' && history.length?row('Continue Watching · Recently Played',history):''}
       ${route==='home' && state.favorites.length?row('Watch Later · Your VHS Queue',favoriteTitles()):''}
       ${route==='home' && state.likes.length?row('Tapes You Liked',likedTitles()):''}
-      ${!state.key?`<div class="setup-nudge"><span>${icon('info',22)}</span><div><strong>Discover thousands more titles.</strong><p>Add a free TMDB API key in Settings for live movie posters, fresh categories, search, ratings, and real episode lists. Only FrameXTV-listed titles appear on the shelves.</p></div><button data-action="route" data-route="settings" data-focus="setup-link">Set Up ${icon('chevron',16)}</button></div>`:''}
+      ${!state.key?`<div class="setup-nudge"><span>${icon('info',22)}</span><div><strong>Load Movie Posters &amp; Details.</strong><p>Add a TMDB API key in Settings for artwork, descriptions and TV episodes. The number of titles comes from our FrameXTV listing feed, not from TMDB.</p></div><button data-action="route" data-route="settings" data-focus="setup-link">Set Up ${icon('chevron',16)}</button></div>`:''}
       ${rows.map(([name,items],idx)=>row(name,items,`${route}-${idx}`)).join('')}
       <div class="footer-note">These shelves contain only titles linked in FrameXTV's public listings. Link present = presumed playable; no playback verification is performed. TMDB only adds poster and description information. Streams may still fail.</div>
       </div>`;
@@ -481,7 +483,82 @@
       <div class="season-row">${buttons.map(s=>`<button class="season-button ${state.currentSeason===s.number?'active':''}" data-action="season" data-season="${s.number}" data-focus="season-${s.number}">${html(s.label)}</button>`).join('')}</div>
       ${eps}</section>`;
   }
+  // App-owned transport controls stay usable even when an embedded video iframe
+  // cannot receive/return Fire TV D-pad focus. Controls are hidden at rest.
+  const PLAYER_IDLE_MS=5000;
+  let playerHideTimer=null, playerControlsVisible=false, playerControlIndex=1;
+  let playerTheater=false;
+  let mediaPlaying=true;
+  const PLAYER_BUTTONS=['player-rewind','player-pause','player-forward','player-fullscreen','player-switch','player-close'];
+  function playerControlButtons(){return PLAYER_BUTTONS.map(k=>$('#player-view [data-focus="'+k+'"]')).filter(Boolean);}
+  function setPlayerControlIndex(next){
+    const buttons=playerControlButtons();
+    if(!buttons.length)return;
+    playerControlIndex=Math.max(0,Math.min(buttons.length-1,next));
+    buttons[playerControlIndex].focus({preventScroll:true});
+  }
+  function hidePlayerControls(){
+    if(!state.playing)return;
+    playerControlsVisible=false;
+    const view=$('#player-view');if(view)view.classList.remove('controls-visible');
+    const idle=$('#player-idle-focus');
+    if(idle)idle.focus({preventScroll:true});
+  }
+  function wakePlayerControls(focusControls=false){
+    if(!state.playing)return;
+    playerControlsVisible=true;
+    const view=$('#player-view');if(view)view.classList.add('controls-visible');
+    clearTimeout(playerHideTimer);
+    playerHideTimer=setTimeout(hidePlayerControls,PLAYER_IDLE_MS);
+    if(focusControls){requestAnimationFrame(()=>{if(state.playing && playerControlsVisible)setPlayerControlIndex(playerControlIndex);});}
+  }
+  function playerDo(action){
+    if(action==='player-rewind')playerCmd('seekBy',{seconds:-10});
+    else if(action==='player-forward')playerCmd('seekBy',{seconds:10});
+    else if(action==='player-pause'){
+      playerCmd(mediaPlaying?'pause':'play');mediaPlaying=!mediaPlaying;
+      updatePlayerPauseButton();
+    }
+    else if(action==='player-fullscreen'){
+      playerTheater=!playerTheater;
+      $('#player-view')?.classList.toggle('theater-view',playerTheater);
+      updatePlayerViewButton();
+    }
+    else if(action==='player-switch'){switchSource();return;}
+    else if(action==='player-close'){closePlayer();return;}
+    wakePlayerControls(true);
+  }
+  function updatePlayerPauseButton(){
+    const b=$('#player-view [data-action="player-pause"]');
+    if(b){b.innerHTML=mediaPlaying?'⏸ Pause':'▶ Play';b.setAttribute('aria-label',mediaPlaying?'Pause video':'Play video');}
+  }
+  function updatePlayerViewButton(){
+    const b=$('#player-view [data-action="player-fullscreen"]');
+    if(b){b.textContent=playerTheater?'⛶ Fullscreen':'▣ Theater view';b.setAttribute('aria-label',playerTheater?'Fill screen with video':'Use inset theater view');}
+  }
+  function playerRemoteKey(key){
+    if(!state.playing)return false;
+    if(key==='ArrowDown'){
+      if(!playerControlsVisible){playerControlIndex=1;} // highlight Play/Pause first
+      wakePlayerControls(true);return true;
+    }
+    if(key==='ArrowUp'){
+      if(playerControlsVisible){hidePlayerControls();}return true;
+    }
+    if(key==='ArrowLeft'||key==='ArrowRight'){
+      if(!playerControlsVisible){wakePlayerControls(true);return true;}
+      setPlayerControlIndex(playerControlIndex+(key==='ArrowRight'?1:-1));
+      wakePlayerControls(true);return true;
+    }
+    if(key==='Enter'||key==='Select'){
+      if(!playerControlsVisible){wakePlayerControls(true);return true;}
+      const b=playerControlButtons()[playerControlIndex];
+      if(b)b.click();return true;
+    }
+    return false;
+  }
   function drawPlayer() {
+    if(!state.playing)return;
     const t=state.playing; const isTV=t.type==='tv';
     const id=Number(t.id), season=Math.max(1,Number(state.currentSeason)||1), episode=Math.max(1,Number(state.currentEpisode)||1);
     const source = state.config.sources.find(x=>x.id===state.domain) || state.config.sources[0];
@@ -489,16 +566,34 @@
     const path=template.split('{id}').join(String(id)).split('{season}').join(String(season)).split('{episode}').join(String(episode));
     const saved=state.history.find(h=>h.key===keyOf(t));
     const at=(saved?.time && Number.isFinite(saved.time) && saved.time>10)?'&t='+Math.floor(saved.time):'';
-    const player=`${source.origin}${path}?autoplay=1&controls=1&muted=0${at}`;
+    // Hide the embed's own chrome; our controls handle D-pad and media keys.
+    // Embed API documents both controls=0 and postMessage playback commands.
+    const player=`${source.origin}${path}?autoplay=1&controls=0&muted=0${at}`;
+    clearTimeout(playerHideTimer);
+    mediaPlaying=true;playerControlsVisible=false;
     const target=$('#overlay-root');
-    target.innerHTML=`<div class="player-view" id="player-view" role="dialog" aria-label="Video player">
-      <iframe id="player-iframe" title="FrameXTV video player" src="${player}" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-      <div class="player-toolbar"><div><span class="player-kicker">NOW PLAYING</span><h2>${html(t.title)}</h2>${isTV?`<p>Season ${season} · Episode ${episode}</p>`:''}</div>
-        <div class="player-actions"><button data-action="next-source" data-focus="player-switch">${icon('spark',16)} Try Other Source</button><button data-action="player-focus" data-focus="player-focus">${icon('play',16)} Player Controls</button><button data-action="close-player" data-focus="player-close">${icon('close',19)} Exit Player</button></div>
-      </div><div class="player-hint">Select <strong>Player Controls</strong> to operate the embedded player. Press the Fire TV Back button to return.</div>
+    target.innerHTML=`<div class="player-view ${playerTheater?'theater-view':''}" id="player-view" role="dialog" aria-label="Video player">
+      <iframe tabindex="-1" id="player-iframe" title="FrameXTV video player" src="${player}" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <button id="player-idle-focus" tabindex="-1" aria-label="Video playing. Press Down for player controls." class="player-idle-focus"></button>
+      <div class="player-overlay" id="player-overlay">
+        <div class="player-heading"><span class="player-kicker">NOW PLAYING</span><h2>${html(t.title)}</h2>${isTV?`<p>Season ${season} · Episode ${episode}</p>`:''}</div>
+        <div class="player-bottom"><span class="player-help">▼ Show controls · ◀ ▶ Select · Fire TV media keys to seek / pause · Back to exit</span>
+          <div class="player-controls" role="toolbar" aria-label="Playback controls">
+            <button data-action="player-rewind" data-focus="player-rewind" aria-label="Rewind ten seconds">↶ 10s</button>
+            <button data-action="player-pause" data-focus="player-pause" aria-label="Pause video">⏸ Pause</button>
+            <button data-action="player-forward" data-focus="player-forward" aria-label="Forward ten seconds">10s ↷</button>
+            <button data-action="player-fullscreen" data-focus="player-fullscreen" aria-label="Use inset theater view">▣ Theater view</button>
+            <button data-action="player-switch" data-focus="player-switch" aria-label="Switch source">⇄ Source</button>
+            <button data-action="player-close" data-focus="player-close" aria-label="Close player">✕ Exit</button>
+          </div>
+        </div>
+      </div>
     </div>`;
-    $('#player-iframe').addEventListener('load',()=>{ $('#player-view')?.classList.add('player-loaded'); });
-    focusByKey('player-focus');
+    const iframe=$('#player-iframe');
+    iframe?.addEventListener('load',()=>{$('#player-view')?.classList.add('player-loaded');});
+    $('#player-idle-focus')?.focus({preventScroll:true});
+    updatePlayerViewButton();
+    wakePlayerControls(false);
   }
   function render(focusKey) {
     let body;
@@ -531,12 +626,13 @@
   }
   function openPlayer() {
     if(!state.detail)return;
+    playerTheater=false;playerControlIndex=1;
     state.playing=state.detail;
     const key=keyOf(state.playing);state.history=state.history.filter(h=>h.key!==key);
     state.history.unshift({key,item:state.playing,at:Date.now(),time:0});state.history=state.history.slice(0,45);saveStore('history',state.history);
     drawPlayer();
   }
-  function closePlayer() { if(!state.playing)return;const frame=$('#player-iframe');if(frame)frame.src='about:blank';state.playing=null;$('#overlay-root').innerHTML='';focusByKey('detail-play'); }
+  function closePlayer() { if(!state.playing)return;clearTimeout(playerHideTimer);const frame=$('#player-iframe');if(frame)frame.src='about:blank';state.playing=null;playerControlsVisible=false;$('#overlay-root').innerHTML='';focusByKey('detail-play'); }
   function toggleFavorite(){
     if(!state.detail)return;
     const k=keyOf(state.detail);
@@ -564,7 +660,7 @@
     const index=state.config.sources.findIndex(x=>x.id===state.domain);
     const next=state.config.sources[(index+1)%state.config.sources.length];
     state.domain=next.id;saveStore('playerDomain',next.id);
-    if(state.playing)drawPlayer();
+    if(state.playing){drawPlayer();playerControlIndex=4;wakePlayerControls(true);}
     showMessage('Trying '+next.label);
   }
   async function refreshRemoteConfig(force=false){
@@ -649,15 +745,44 @@
     }catch(_){if(serial===searchSerial){state.searchResults=[];refreshSearchResults();}}
   }
   function refreshSearchResults() { const area=$('#search-result-area');if(area)area.innerHTML=searchResultsHtml(); }
-  function playerCmd(action,params={}) { const frame=$('#player-iframe');if(!frame||!frame.contentWindow)return;const source=state.config.sources.find(x=>x.id===state.domain)||state.config.sources[0];try{frame.contentWindow.postMessage({action,...params},source.origin);}catch(_){} }
-  let mediaPlaying=true;
+  function playerCmd(action,params={}) {
+    const frame=$('#player-iframe');if(!frame||!frame.contentWindow)return;
+    // The primary .xyz address may redirect to .cc. Target both trusted configured
+    // player origins, never '*'; only the iframe's real origin receives the action.
+    const origins=new Set(state.config.sources.map(x=>x.origin));
+    for(const origin of origins){
+      try{frame.contentWindow.postMessage({action,...params},origin);}catch(_){}
+    }
+  }
   window.fireTvMediaKey = action => {
-    if(!state.playing)return;
+    if(!state.playing)return false;
     if(action==='play'){playerCmd('play');mediaPlaying=true;}
     else if(action==='pause'){playerCmd('pause');mediaPlaying=false;}
     else if(action==='rewind')playerCmd('seekBy',{seconds:-10});
     else if(action==='forward')playerCmd('seekBy',{seconds:10});
     else {playerCmd(mediaPlaying?'pause':'play');mediaPlaying=!mediaPlaying;}
+    updatePlayerPauseButton();wakePlayerControls(false);return true;
+  };
+  // Used directly by native Fire OS key dispatch: guarantees the D-pad works
+  // even if the third-party iframe attempts to capture focus.
+  window.fireTvRemoteKey = key => {
+    if(state.playing)return playerRemoteKey(key);
+    const active=document.activeElement;
+    if(key==='Enter'){
+      if(active?.tagName==='BUTTON'){active.click();return true;}
+      if(active?.tagName==='INPUT'){active.focus();active.click();return true;}
+    }
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(key)){
+      if(active?.tagName==='INPUT'){
+        if(key==='ArrowLeft'||key==='ArrowRight'){
+          const pos=active.selectionStart||0;
+          active.setSelectionRange(Math.max(0,pos+(key==='ArrowRight'?1:-1)),Math.max(0,pos+(key==='ArrowRight'?1:-1)));
+          return true;
+        }
+      }
+      spatialNavigate(key);return true;
+    }
+    return false;
   };
   window.fireTvAppPause = () => { if(state.playing)playerCmd('pause'); };
   window.fireTvBack = () => {
@@ -691,8 +816,7 @@
       if(state.key)loadEpisodes(state.currentSeason);else render(`season-${state.currentSeason}`);return;}
     if(action==='episode'){state.currentEpisode=Number(btn.dataset.episode);render(`episode-${state.currentEpisode}`);return;}
     if(action==='set-episode'){const n=Number($('#ep-number')?.value);if(!Number.isInteger(n)||n<1||n>999){showMessage('Enter an episode number from 1 to 999.');return;}state.currentEpisode=n;render('detail-play');return;}
-    if(action==='close-player'){closePlayer();return;}
-    if(action==='player-focus'){$('#player-iframe')?.focus();showMessage('Player focused. Press Fire TV Back to leave playback.');return;}
+    if(action?.startsWith('player-')){playerDo(action);return;}
     if(action==='domain'){setDomain(btn.dataset.domain);return;}
     if(action==='next-source'){switchSource();return;}
     if(action==='save-config'){const u=$('#config-url')?.value.trim()||'';state.configUrl=u;saveStore('configUrl',u);state.configChecked=0;render('refresh-config');refreshRemoteConfig(true);return;}
@@ -715,27 +839,98 @@
   });
   document.addEventListener('keydown',ev=>{
     if(ev.key==='Escape'||ev.key==='BrowserBack'){ev.preventDefault();window.fireTvBack();return;}
+    if(state.playing && ['ArrowDown','ArrowUp','ArrowLeft','ArrowRight','Enter',' '].includes(ev.key)){
+      ev.preventDefault();ev.stopPropagation();playerRemoteKey(ev.key===' '?'Enter':ev.key);return;
+    }
     if(ev.key==='Enter'){
       if(document.activeElement?.id==='search-input'){document.activeElement.blur();const first=$('#search-result-area [data-focus]');first?.focus();ev.preventDefault();return;}
       if(document.activeElement?.id==='ep-number'){state.currentEpisode=Math.max(1,Number(document.activeElement.value)||1);render('detail-play');ev.preventDefault();return;}
       const a=document.activeElement;if(a?.tagName==='BUTTON'){ev.preventDefault();a.click();return;}
     }
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(ev.key))return;
-    if(state.playing && document.activeElement?.id==='player-iframe')return; // iframe owns the player's D-pad.
+    // Player D-pad keys are handled above so the iframe never traps navigation.
     if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
       if(ev.key==='ArrowLeft'||ev.key==='ArrowRight')return;
     }
     ev.preventDefault(); spatialNavigate(ev.key);
   },true);
+  // D-pad navigation prioritises shelf structure, not the coordinates of
+  // off-screen carousel items (those used to trap focus on Fire TV).
+  function moveFocusTo(el) {
+    if (!el) return false;
+    el.focus({preventScroll:true});
+    const strip=el.closest('.carousel-row');
+    if(strip){
+      const cr=el.getBoundingClientRect(),sr=strip.getBoundingClientRect();
+      strip.scrollLeft+=cr.left+cr.width/2-(sr.left+sr.width/2);
+    }
+    const main=$('.main');
+    if(main && main.contains(el)){
+      const r=el.getBoundingClientRect(),m=main.getBoundingClientRect();
+      if(r.top<m.top+26)main.scrollTop+=r.top-m.top-55;
+      else if(r.bottom>m.bottom-40)main.scrollTop+=r.bottom-m.bottom+55;
+    }
+    return true;
+  }
   function spatialNavigate(direction){
-    const current=document.activeElement;const curr=current?.getBoundingClientRect?.();
+    const current=document.activeElement;
+    const inRow=current?.closest?.('.carousel-row');
+    const rows=$$('.carousel-row').filter(r=>r.querySelector('.vhs-card'));
+    if(inRow){
+      const cards=$$('.vhs-card',inRow);
+      const idx=Math.max(0,cards.indexOf(current));
+      const shelfIndex=rows.indexOf(inRow);
+      if(direction==='ArrowLeft'){
+        if(idx>0){moveFocusTo(cards[idx-1]);return;}
+        const selected=$('.nav-item.selected')||$('.nav-item');
+        moveFocusTo(selected);return;
+      }
+      if(direction==='ArrowRight'){
+        if(idx<cards.length-1)moveFocusTo(cards[idx+1]);
+        return;
+      }
+      if(direction==='ArrowUp'||direction==='ArrowDown'){
+        const nextRow=rows[shelfIndex+(direction==='ArrowDown'?1:-1)];
+        if(nextRow){
+          const nextCards=$$('.vhs-card',nextRow);
+          moveFocusTo(nextCards[Math.min(idx,nextCards.length-1)]);
+        }else if(direction==='ArrowUp'){
+          moveFocusTo($('.hero-buttons [data-focus]')||$('.nav-item.selected'));
+        }
+        return;
+      }
+    }
+    const inNav=current?.closest?.('.sidebar');
+    if(inNav){
+      const nav=$$('.sidebar .nav-item');
+      const idx=nav.indexOf(current);
+      if(direction==='ArrowDown'||direction==='ArrowUp'){
+        moveFocusTo(nav[Math.max(0,Math.min(nav.length-1,idx+(direction==='ArrowDown'?1:-1)))]);
+        return;
+      }
+      if(direction==='ArrowRight'){
+        moveFocusTo($('.hero-buttons [data-focus]')||$('.rows-wrap .vhs-card')||$('.main [data-focus]'));
+        return;
+      }
+      if(direction==='ArrowLeft')return;
+    }
+    if(current?.closest?.('.hero') && direction==='ArrowDown'){
+      if(moveFocusTo(rows[0]?.querySelector('.vhs-card')))return;
+    }
+    if(direction==='ArrowDown' && !current?.closest?.('.catalog-row') &&
+       current?.closest?.('.main') && rows.length &&
+       !current?.closest?.('.setting-panel,.detail-hero,.search-panel')){
+      if(moveFocusTo(rows[0].querySelector('.vhs-card')))return;
+    }
+    // Spatial fallback is reserved for details, settings, search, and overlays.
+    const curr=current?.getBoundingClientRect?.();
     const nodes=$$('[data-focus]').filter(el=>{
       if(el.disabled || el.getAttribute('aria-hidden')==='true')return false;
       if(state.playing&&!$('#player-view')?.contains(el))return false;
       const r=el.getBoundingClientRect();return r.width>2 && r.height>2;
     });
     if(!nodes.length)return;
-    if(!curr||!nodes.includes(current)){nodes[0].focus();return;}
+    if(!curr || !nodes.includes(current)){moveFocusTo(nodes[0]);return;}
     const cx=curr.left+curr.width/2,cy=curr.top+curr.height/2;
     let best=null,score=Infinity;
     for(const el of nodes){if(el===current)continue;
@@ -744,12 +939,10 @@
       const primary=direction==='ArrowRight'?dx:direction==='ArrowLeft'?-dx:direction==='ArrowDown'?dy:-dy;
       if(primary<=5)continue;
       const secondary=direction==='ArrowLeft'||direction==='ArrowRight'?Math.abs(dy):Math.abs(dx);
-      // Bias toward targets in the same visual row/column.
-      const penalty=secondary>primary*1.35?secondary*1.7:secondary*.7;
-      const candidate=primary+penalty;
+      const candidate=primary+secondary*(secondary>primary*1.35?1.7:.7);
       if(candidate<score){score=candidate;best=el;}
     }
-    if(best){best.focus({preventScroll:true});best.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});}
+    moveFocusTo(best);
   }
   // Fire TV local player cannot open external browser windows. Playback controls stay in the embedded source.
   // Check again when Fire TV brings the app back to the foreground, without polling in the background.

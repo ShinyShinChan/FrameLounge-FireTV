@@ -143,6 +143,18 @@ public final class MainActivity extends Activity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN && webView != null) {
+            String dpad = null;
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP: dpad = "ArrowUp"; break;
+                case KeyEvent.KEYCODE_DPAD_DOWN: dpad = "ArrowDown"; break;
+                case KeyEvent.KEYCODE_DPAD_LEFT: dpad = "ArrowLeft"; break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT: dpad = "ArrowRight"; break;
+                case KeyEvent.KEYCODE_DPAD_CENTER: dpad = "Enter"; break;
+            }
+            if (dpad != null) {
+                webView.evaluateJavascript("window.fireTvRemoteKey && window.fireTvRemoteKey('" + dpad + "')", null);
+                return true;
+            }
             String action = null;
             switch (event.getKeyCode()) {
                 case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE: action = "toggle"; break;

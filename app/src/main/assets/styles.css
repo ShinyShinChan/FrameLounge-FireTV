@@ -48,3 +48,26 @@
 .boot-vhs{width:260px;max-height:200px;object-fit:contain}
 @media(max-width:1150px){.brand-vhs{width:70px;height:62px}.brand-words{font-size:13px}.poster-card.vhs-card{flex-basis:157px;width:157px}.vhs-spine-title{font-size:11px}.detail-poster{width:210px}.vhs-detail-buttons .action-button{font-size:13px;padding:10px 12px}}
 @media(max-height:650px){.poster-card.vhs-card{flex-basis:148px;width:148px}.brand-vhs{width:63px}.vhs-detail-buttons{margin-top:15px}.vhs-detail-buttons .action-button{min-height:43px}.detail-flex{margin-top:18px}.detail-hero{min-height:390px}}
+
+/* v1.8: unobstructed playback with 5-second remote-controlled overlay */
+.player-view{background:#000;isolation:isolate}
+.player-view iframe{z-index:1;outline:0}
+.player-idle-focus{position:absolute!important;z-index:3;top:0;left:0;width:1px;height:1px;padding:0;opacity:0;overflow:hidden;border:0;pointer-events:none}
+.player-overlay{position:absolute;inset:0;z-index:5;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s ease}
+.player-view.controls-visible .player-overlay{opacity:1;visibility:visible}
+.player-heading{position:absolute;top:0;left:0;right:0;padding:17px 34px 46px;background:linear-gradient(180deg,#03030aec,transparent);pointer-events:none}
+.player-heading h2{margin:4px 0 3px;font-size:24px;font-weight:800;text-shadow:0 2px 12px black}
+.player-heading p{margin:0;color:#ddd;font-size:14px}
+.player-bottom{position:absolute;left:0;bottom:0;right:0;display:flex;flex-direction:column;align-items:center;gap:13px;padding:44px 25px 37px;background:linear-gradient(0deg,#030306f2,#050408dd 43%,transparent 100%)}
+.player-help{font-size:13px;letter-spacing:.25px;color:#e3d9ef;opacity:.85;pointer-events:none}
+.player-controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;pointer-events:auto}
+.player-controls button{min-height:58px;min-width:112px;border-radius:12px;padding:11px 18px;background:#25232ddf;color:#f2eafb;border:2px solid #bfb1cf78;font-size:17px;font-weight:750;box-shadow:0 6px 20px #0009}
+.player-controls button:focus,.player-controls button:focus-visible{border-color:#fff1d0;outline:3px solid #eab87b;outline-offset:2px;background:#695182;box-shadow:0 0 16px #dec0f7a8}
+.player-view.theater-view{background:#141019}
+.player-view.theater-view iframe{inset:6% 7%;width:86%;height:82%;box-shadow:0 0 0 2px #8b75827a,0 12px 38px #000e;border-radius:10px}
+.player-view.theater-view .player-overlay{inset:0}
+@media (max-width:1180px){.player-controls button{min-width:95px;min-height:51px;font-size:14px;padding:9px 11px}.player-heading h2{font-size:20px}.player-bottom{padding-bottom:25px}}
+/* Avoid a visibility transition blocking programmatic focus just after Down. */
+.player-overlay{visibility:visible;transition:opacity .24s ease}
+.player-view:not(.controls-visible) .player-controls{pointer-events:none}
+.player-view:not(.controls-visible) .player-controls button{pointer-events:none}

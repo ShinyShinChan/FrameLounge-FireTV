@@ -1,3 +1,29 @@
+# Frame Lounge VHS v1.8.0 — Fire Stick Player Controls and Library Navigation
+
+**New playback controls**: Video fills the screen by default. The app's transport overlay (not the FrameXTV website toolbar) fades after **5 seconds** with no input. Fire Stick **Down** wakes the toolbar; **Left/Right** selects controls; **Select** activates; **Up** hides. Remote Play/Pause, Rewind (−10 seconds), Fast Forward (+10 seconds) are routed to the FrameXTV documented `postMessage` API. The Fullscreen button switches between full-screen video and an inset theater view. The **Back** button exits playback. The embedded FrameXTV toolbar is disabled using `controls=0`. Embedded-source behavior can still vary, depending on FrameXTV, codecs, and WebView support.
+
+**Browse improvements**: Includes the v1.7 focused shelf navigation; all titles from the remote catalog appear in grouped VHS shelves. The home bar displays actual counts. v1.7's crawler remembers its progress so repeated scheduled catalog refreshes can find more than the earlier 270. It still only accepts FrameXTV-observed title links and never probes streams. **The full size of FrameXTV's library is not established**, and a given daily run may discover no new titles due to upstream restrictions. Do not treat 270 as the total library.
+
+**Install**: Extract this ZIP and run from PowerShell in the extracted folder:
+
+`powershell -ExecutionPolicy Bypass -File .\UPDATE-EXISTING-WINDOWS.ps1`
+
+The updater **preserves the existing published `framextv-catalog.json` and `framextv-crawl-progress.json`** rather than replacing them with the smaller starter snapshot inside this ZIP. It targets your existing single public `ShinyShinChan/FrameLounge-FireTV` repository. Then run **Refresh FrameXTV Listings** in GitHub Actions, followed by **Build Fire TV APK**; obtain the latest artifact, extract the APK, upload it as an asset to GitHub Releases, and download on your Fire Stick with Downloader. Rebuilding is necessary for the new video and D-pad controls. Updating only the remote catalog doesn't require a new APK.
+
+**Signing warning**: GitHub's unsigned-in-practice *debug* builds use temporary keys. If your new APK is signed differently than the installed app, updating in place will fail. Set up and keep a persistent keystore before collecting saved Likes/Dislikes/Watch Later in a long-lived installation. Uninstalling loses locally saved data.
+
+---
+
+# Frame Lounge — VHS Edition v1.7.0
+
+**What this update addresses:** the Fire TV Down/Up/Left/Right buttons now navigate VHS rows explicitly, instead of selecting off-screen items according to their raw screen coordinates. The top bar reports the number of MOVIES and SERIES currently downloaded.
+
+**More than 270 titles:** the previous 270 were only the first links collected, not the website's full selection. The collector now saves discovery progress in `framextv-crawl-progress.json`, searches genre + page, year, and website-search query pages, and resumes across scheduled or manually triggered runs. It *only* adds links actually observed on FrameXTV; it never generates movies from TMDB alone. **Exact completeness is not guaranteed** until the site's own full listing interface or catalog API is available. Repeated GitHub Actions catalog runs may expand the count. New title lists update the installed app without reinstalling the APK. Navigation improvements require installing v1.7 APK.
+
+**Update steps:** Extract zip and run `powershell -ExecutionPolicy Bypass -File .\UPDATE-EXISTING-WINDOWS.ps1` in PowerShell in the extracted folder. Then run **Refresh FrameXTV Listings** in GitHub Actions. Open app → Settings → Refresh FrameXTV Listings. To get the D-pad improvement, build/install the updated APK, using the same signing certificate to retain local likes/dislikes/watch later data.
+
+---
+
 # Frame Lounge — v1.6.1 Catalog Collector Hotfix (no APK installation required)
 
 The previous GitHub catalog workflow reached FrameXTV, but returned zero matches because it relied on simple HTML anchors. This version inspects HTML, serialized page data, and optionally a headless Chromium rendering of the **public browse pages**. It does not probe video streams.

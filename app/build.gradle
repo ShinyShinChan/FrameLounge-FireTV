@@ -10,8 +10,8 @@ android {
         applicationId 'com.framelounge.tv'
         minSdk 23
         targetSdk 28
-        versionCode 7
-        versionName '1.6.0'
+        versionCode 9
+        versionName '1.8.0'
     }
 
     // For repeatable installs/updates, provide a signing keystore using GitHub Actions secrets.

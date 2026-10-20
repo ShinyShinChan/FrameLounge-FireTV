@@ -22,12 +22,12 @@ jobs:
         run: python3 scripts/update_framextv_catalog.py
       - name: Publish refreshed catalog to the public repository
         run: |
-          if git diff --quiet -- framextv-catalog.json; then
+          if git diff --quiet -- framextv-catalog.json && git diff --quiet -- framextv-crawl-progress.json && test -z "$(git ls-files --others --exclude-standard framextv-crawl-progress.json)"; then
             echo 'No catalog changes'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add framextv-catalog.json
-          git commit -m 'Refresh public FrameXTV title catalog'
+          git add framextv-catalog.json framextv-crawl-progress.json
+          git commit -m 'Expand FrameXTV catalog via resumable browse discovery'
           git push

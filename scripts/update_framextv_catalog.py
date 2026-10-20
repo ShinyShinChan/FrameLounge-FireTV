@@ -25,8 +25,11 @@ HOSTS = {'framextv.cc', 'framextv.xyz'}
 TITLE_LINK = re.compile(r'^/(movie|tv)/(\d{1,9})(?:/|$)')
 MOVIE_GENRES = [28, 12, 16, 35, 80, 99, 18, 10751, 14, 36, 27, 10402, 9648, 10749, 878, 10770, 53, 10752, 37]
 TV_GENRES = [10759, 16, 35, 80, 99, 18, 10751, 10762, 9648, 10763, 10764, 10765, 10766, 10767, 10768, 37]
+# Deliberately bounded per run; subsequent runs resume the remaining public browse URLs.
 MAX_PAGES = 90
-MAX_TITLES = 5000
+MAX_TITLES = 8000
+PROGRESS = ROOT / 'framextv-crawl-progress.json'
+MAX_PENDING = 1800
 
 
 def tidy(value):
@@ -92,7 +95,7 @@ class ListingParser(HTMLParser):
         if uri.path.rstrip('/') not in ('/movies','/tv'):
             return
         params = parse_qs(uri.query)
-        if any(k not in ('genre','page','sort','year','search','query') for k in params):
+        if any(k not in ('genre','page','sort','sort_by','year','search','query','q','with_genres','primary_release_year','first_air_date_year') for k in params):
             return
         if len(uri.query) < 140:
             self.navigation.add(BASE+uri.path+('?' + uri.query if uri.query else ''))
@@ -189,11 +192,54 @@ def extract_html(source, url):
 
 
 def seed_pages():
+    """Browse distinct catalog slices rather than recrawling a few front-page rows.
+
+    These are *queries against FrameXTV itself*, never guessed playable media IDs.
+    URLs that it ignores simply return duplicates, which are deduplicated by ID.
+    """
     urls = [BASE+'/movies',BASE+'/tv']
     urls += [f'{BASE}/movies?genre={g}' for g in MOVIE_GENRES]
     urls += [f'{BASE}/tv?genre={g}' for g in TV_GENRES]
-    urls += [f'{BASE}/{kind}?page={page}' for kind in ('movies','tv') for page in (2,3,4,5)]
-    return urls
+    urls += [f'{BASE}/{kind}?page={page}' for kind in ('movies','tv') for page in range(2,12)]
+    # Some websites paginate their browse page *within* genre filters.
+    urls += [f'{BASE}/movies?genre={g}&page={n}' for g in MOVIE_GENRES for n in (2,3,4)]
+    urls += [f'{BASE}/tv?genre={g}&page={n}' for g in TV_GENRES for n in (2,3,4)]
+    # Partition older and current titles by year where the website supports it.
+    urls += [f'{BASE}/{kind}?year={year}' for kind in ('movies','tv')
+             for year in range(datetime.now(timezone.utc).year,1974,-1)]
+    # Alphabetical search is a supplemental way to visit *listed* titles.
+    # The search parameters are tried conservatively because sites differ.
+    for kind in ('movies','tv'):
+        for key in ('search','query','q'):
+            for letter in 'abcdefghijklmnopqrstuvwxyz':
+                urls.append(f'{BASE}/{kind}?{key}={letter}')
+    return list(dict.fromkeys(urls))
+
+
+def load_progress():
+    if PROGRESS.exists():
+        try:
+            state=json.loads(PROGRESS.read_text(encoding='utf-8'))
+            if state.get('schema')==1 and isinstance(state.get('pending'),list) and state['pending']:
+                pending=[u for u in state['pending'] if isinstance(u,str) and u.startswith(BASE+'/')]
+                visited=set(u for u in state.get('visited',[]) if isinstance(u,str) and u.startswith(BASE+'/'))
+                if pending:
+                    return pending,visited
+        except (ValueError,TypeError,OSError):
+            pass
+    return seed_pages(),set()
+
+
+def save_progress(queue,visited):
+    # A complete pass starts afresh on the next scheduled refresh so new titles can appear.
+    pending=list(queue)
+    if not pending:
+        pending=seed_pages()
+        visited=set()
+    state={'schema':1,'updated_at':datetime.now(timezone.utc).isoformat(),
+           'visited_count':len(visited),'remaining_count':len(pending),
+           'visited':sorted(visited),'pending':pending[:MAX_PENDING]}
+    PROGRESS.write_text(json.dumps(state,indent=2)+'\n',encoding='utf-8')
 
 
 def read_url(url):
@@ -275,18 +321,20 @@ def main():
     existing=json.loads(OUT.read_text(encoding='utf-8')) if OUT.exists() else {'items':[]}
     known={(x['type'],int(x['id'])):x for x in existing.get('items',[])
            if x.get('type') in ('movie','tv') and str(x.get('id','')).isdigit()}
-    queue=deque(seed_pages())
-    visited=set()
-    queued=set(queue)
+    scheduled,visited=load_progress()
+    queue=deque(scheduled)
+    queued=set(queue)|visited
     found={}
     working=0
+    pages_this_run=0
     browser=None
     used_browser=False
     try:
-        while queue and len(visited)<MAX_PAGES and len(found)<MAX_TITLES:
+        while queue and pages_this_run<MAX_PAGES and len(found)<MAX_TITLES:
             url=queue.popleft()
             if url in visited:continue
             visited.add(url)
+            pages_this_run+=1
             records={}; navigation=set();method='HTML'; diag={}
             try:
                 source=read_url(url)
@@ -318,31 +366,35 @@ def main():
                   f'(HTML bytes={diag.get("html_bytes",0)}, anchors={diag.get("anchors",0)}, '
                   f'scripts={diag.get("script_tags",0)}, network={diag.get("network_titles",0)})')
             for link in sorted(navigation):
-                if link not in queued and len(queued)<MAX_PAGES*2:
+                if link not in queued and len(queued)<MAX_PENDING:
                     queue.append(link); queued.add(link)
-            if browser is None and len(visited)<3:
-                time.sleep(.12)
+            # Be considerate of the site's traffic: a small gap between pages.
+            if browser is None: time.sleep(.18)
     finally:
         if browser is not None:
             browser.close()
-    print(f'Scanned {len(visited)} FrameXTV browse URLs; {working} pages with titles; '
-          f'{len(found)} distinct titles; browser fallback={used_browser}')
-    if not found or working==0 or len(found)<10:
-        raise SystemExit('No trustworthy listings found. Existing catalog retained. '
-                         'Read HTML/Chromium diagnostics above; do NOT replace the JSON with an empty list.')
-    if len(found)<len(known)//3:
-        raise SystemExit('Suspicious catalog shrinkage. Existing catalog retained.')
-    for k,v in list(found.items()):
-        if v['title'].startswith(('Movie ','Series ')) and k in known:
-            found[k]=dict(known[k])
+    print(f'Scanned {pages_this_run} new FrameXTV browse URLs; {working} pages with titles; '
+          f'{len(found)} seen this pass; {len(known)} previously collected; '
+          f'{len(queue)} pages remaining; browser fallback={used_browser}')
+    # Track the next browse pages even when the site blocks this particular run.
+    save_progress(queue,visited)
+    if not found or working==0:
+        print('No new listings this pass. Existing catalog retained; later runs resume remaining browse pages.')
+        return
+    # Build a cumulative collection of links observed at least once on FrameXTV.
+    # A blocked browse page must not erase existing VHS shelves or local saved lists.
+    for k,v in known.items():
+        found[k]=choose(found.get(k),v)
     result={'schema':1,'version':datetime.now(timezone.utc).strftime('%Y-%m-%d'),
-            'source':'FrameXTV publicly listed titles; not stream-tested',
+            'source':'FrameXTV public browse links collected over multiple passes; video not tested',
             'items':sorted(found.values(),key=lambda x:(x['type'],x['title'].casefold(),x['id']))}
+    if len(found)>MAX_TITLES:
+        result['items']=result['items'][:MAX_TITLES]
     if result['items']==existing.get('items'):
-        print('No catalog changes')
+        print('No new titles on this pass; continuing discovery on next run')
         return
     OUT.write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
-    print('Updated public catalog:',len(result['items']),'titles')
+    print('Updated cumulative public catalog:',len(result['items']),'titles')
 
 if __name__=='__main__':
     main()

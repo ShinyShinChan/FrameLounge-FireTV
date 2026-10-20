@@ -17,7 +17,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Could not clone Frame Lounge GitHub repository.' }
     # Crucially includes HIDDEN .github/workflows folder; leave downloaded repo's .git intact.
     foreach ($source in (Get-ChildItem -LiteralPath $PSScriptRoot -Force)) {
-        if ($source.Name -in @('.git','.gradle','.idea','__pycache__')) { continue }
+        # These two files are generated and refreshed by GitHub Actions. Keep the
+        # larger published library and crawler progress from the existing repository.
+        if ($source.Name -in @('.git','.gradle','.idea','__pycache__','framextv-catalog.json','framextv-crawl-progress.json')) { continue }
         $destination = Join-Path $folder $source.Name
         if ($source.PSIsContainer -and (Test-Path -LiteralPath $destination)) {
             Remove-Item -LiteralPath $destination -Recurse -Force
@@ -30,7 +32,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Git staging failed.' }
         & git diff --cached --quiet
         if ($LASTEXITCODE -eq 0) { Write-Host 'Repository already matches this version.'; exit 0 }
-        & git -c user.name='ShinyShinChan' -c user.email='41898282+ShinyShinChan@users.noreply.github.com' commit -m 'Frame Lounge v1.6.1 browser-aware catalog collection'
+        & git -c user.name='ShinyShinChan' -c user.email='41898282+ShinyShinChan@users.noreply.github.com' commit -m 'Frame Lounge v1.8 video-only player D-pad controls and catalog expansion'
         if ($LASTEXITCODE -ne 0) { throw 'Git commit failed.' }
         & git push origin HEAD:main
         if ($LASTEXITCODE -ne 0) { throw 'Git push failed. Check repository permissions and GitHub account.' }
