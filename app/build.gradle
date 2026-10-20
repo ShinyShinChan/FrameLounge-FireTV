@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.framelounge.tv'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.framelounge.tv'
+        minSdk 23
+        targetSdk 28
+        versionCode 4
+        versionName '1.3.0'
+    }
+
+    // For repeatable installs/updates, provide a signing keystore using GitHub Actions secrets.
+    // Public source and APK contain no signing private key.
+    def storePath = System.getenv('FRAME_LOUNGE_KEYSTORE_PATH')
+    def storePass = System.getenv('FRAME_LOUNGE_KEYSTORE_PASSWORD')
+    signingConfigs {
+        if (storePath && storePass) {
+            personal {
+                storeFile file(storePath)
+                storePassword storePass
+                keyAlias 'framelounge'
+                keyPassword storePass
+                storeType 'pkcs12'
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (storePath && storePass) signingConfig signingConfigs.personal
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}

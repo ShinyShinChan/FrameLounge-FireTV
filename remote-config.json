@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "version": "1.3.0",
+  "defaultSource": "framextv.xyz",
+  "sources": [
+    {
+      "id": "framextv.xyz",
+      "label": "FrameXTV · Primary",
+      "origin": "https://framextv.xyz",
+      "movie": "/embed/{id}",
+      "tv": "/embed/{id}/{season}/{episode}"
+    },
+    {
+      "id": "framextv.cc",
+      "label": "FrameXTV · Mirror",
+      "origin": "https://framextv.cc",
+      "movie": "/embed/{id}",
+      "tv": "/embed/{id}/{season}/{episode}"
+    }
+  ]
+}

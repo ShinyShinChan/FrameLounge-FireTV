@@ -1,0 +1,4 @@
+Frame Lounge - Fire TV prototype source code
+Copyright (c) 2026
+
+Permission is granted to use, copy, modify and share this app's original source code for personal, lawful purposes. This license does not grant rights to third-party names, movie artwork, metadata, embedded video, streams or streaming services, which remain subject to their respective owners' terms.
