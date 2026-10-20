@@ -244,6 +244,8 @@
   function paint(t) { const h=(Number(t.id)*47)%360; return `--shade1:hsl(${h} 39% 23%);--shade2:hsl(${(h+43)%360} 48% 11%)`; }
   function navItem(id,label,ic) { return `<button class="nav-item ${state.route===id?'selected':''}" data-action="route" data-route="${id}" data-focus="nav-${id}">${icon(ic,24)}<span>${label}</span></button>`; }
   function shell(content) {
+    const unsavedApiKey = $('#api-key')?.value;
+    const unsavedConfigUrl = $('#config-url')?.value;
     app.innerHTML = `<div class="layout">
       <aside class="sidebar">
         <div class="brand"><img class="brand-vhs" src="vhs-logo.png" alt="TV VHS cassette"><div class="brand-words">FRAME<br><em>LOUNGE</em><small>THE VIDEO SHELF</small></div></div>
@@ -261,6 +263,9 @@
       ${state.message ? `<div class="toast" role="status">${html(state.message)}</div>` : ''}
       <div class="remote-help">${icon('keyboard',16)} Use ▲ ▼ to change VHS shelves • ◀ ▶ to move across tapes • Select to open</div>
     </div>`;
+    // Preserve in-progress form entries across asynchronous catalog/source refreshes.
+    if(unsavedApiKey!==undefined && $('#api-key'))$('#api-key').value=unsavedApiKey;
+    if(unsavedConfigUrl!==undefined && $('#config-url'))$('#config-url').value=unsavedConfigUrl;
     if (state.playing) drawPlayer();
   }
   function focusByKey(key) {
@@ -421,7 +426,7 @@
       <section class="setting-panel"><div class="setting-title">${icon('movies',22)} Live Catalog · TMDB</div>
         <p>Enter your own TMDB API key once to load live movies, posters, genres, and TV episodes. It is saved locally on this Fire Stick and never placed in GitHub or inside the downloadable APK. A TMDB v3 API key or v4 read token works.</p>
         <div class="input-label">YOUR TMDB API KEY / READ ACCESS TOKEN</div>
-        <div class="settings-control"><input id="api-key" data-focus="api-key" type="password" autocorrect="off" autocapitalize="none" spellcheck="false" autocomplete="off" placeholder="Paste or type your TMDB key" value=""><button class="action-button primary small" data-action="save-api" data-focus="save-api">Save &amp; Connect</button></div>
+        <div class="settings-control"><input id="api-key" data-focus="api-key" type="password" autocorrect="off" autocapitalize="none" spellcheck="false" autocomplete="off" placeholder="Paste or type your TMDB key" value=""><button class="action-button primary small" data-action="save-api" data-focus="save-api">Save &amp; Connect</button></div><p class="setting-help">After entering your key, close the on-screen keyboard, then press RIGHT or DOWN to highlight Save &amp; Connect. Press SELECT to save.</p>
         <p class="setting-help">${state.key?'Catalog credential: saved on this device.':'Catalog credential: not configured; starter library available.'} Tip: use the Fire TV phone app keyboard to paste the key without typing it with a remote. Treat anyone with access to app data as able to retrieve your credential.</p>
         <button class="action-button secondary small" data-action="clear-api" data-focus="clear-api">Remove Saved Key</button>
       </section>
@@ -679,12 +684,12 @@
       state.domain=manuallySelected && config.sources.some(x=>x.id===previous)?previous:config.defaultSource;
       state.configChecked=Date.now();saveStore('configChecked',state.configChecked);
       state.configStatus='Updated '+new Date(state.configChecked).toLocaleDateString()+' '+new Date(state.configChecked).toLocaleTimeString();
-      if(state.route==='settings' && !state.playing)render('refresh-config');
+      if(state.route==='settings' && !state.playing)render(document.activeElement?.dataset?.focus || 'refresh-config');
       if(force)showMessage('Sources updated: '+config.version);
     }catch(err){
       state.configStatus='Update check unavailable ('+String(err.message||'network error').slice(0,100)+'); using saved sources';
       if(force)showMessage(state.configStatus);
-      if(state.route==='settings' && !state.playing)render('refresh-config');
+      if(state.route==='settings' && !state.playing)render(document.activeElement?.dataset?.focus || 'refresh-config');
     }finally{clearTimeout(timer);}
   }
   function apiHeaders() { return state.key.startsWith('eyJ')?{Authorization:'Bearer '+state.key}:{ }; }
@@ -773,12 +778,21 @@
       if(active?.tagName==='INPUT'){active.focus();active.click();return true;}
     }
     if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(key)){
-      if(active?.tagName==='INPUT'){
-        if(key==='ArrowLeft'||key==='ArrowRight'){
-          const pos=active.selectionStart||0;
-          active.setSelectionRange(Math.max(0,pos+(key==='ArrowRight'?1:-1)),Math.max(0,pos+(key==='ArrowRight'?1:-1)));
-          return true;
-        }
+      // TV-remotes have no Tab key: Right/Down must exit settings fields.
+      // Use explicit targets so focus cannot skip Save & Connect.
+      const target = active?.id==='api-key' ? 'save-api' :
+                     active?.id==='config-url' ? 'save-config' : null;
+      if(target && (key==='ArrowRight'||key==='ArrowDown')){
+        active.blur();
+        moveFocusTo($('[data-focus="'+target+'"]'));
+        return true;
+      }
+      // Left still supports correcting text without accidentally exiting it.
+      if(active?.tagName==='INPUT' && key==='ArrowLeft' &&
+         ['text','password','search','tel'].includes(active.type)){
+        const pos=active.selectionStart||0;
+        active.setSelectionRange(Math.max(0,pos-1),Math.max(0,pos-1));
+        return true;
       }
       spatialNavigate(key);return true;
     }
@@ -849,7 +863,13 @@
     }
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(ev.key))return;
     // Player D-pad keys are handled above so the iframe never traps navigation.
-    if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+    const focused=document.activeElement;
+    const saveTarget=focused?.id==='api-key'?'save-api':
+                     focused?.id==='config-url'?'save-config':null;
+    if(saveTarget && (ev.key==='ArrowRight'||ev.key==='ArrowDown')){
+      ev.preventDefault();focused.blur();moveFocusTo($('[data-focus="'+saveTarget+'"]'));return;
+    }
+    if(['INPUT','TEXTAREA'].includes(focused?.tagName)) {
       if(ev.key==='ArrowLeft'||ev.key==='ArrowRight')return;
     }
     ev.preventDefault(); spatialNavigate(ev.key);
