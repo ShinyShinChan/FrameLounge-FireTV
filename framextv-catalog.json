@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "version": "2026-10-20",
-  "source": "FrameXTV publicly listed titles; not stream-tested",
+  "source": "FrameXTV public browse links collected over multiple passes; video not tested",
   "items": [
     {
       "type": "movie",
@@ -30,6 +30,11 @@
     },
     {
       "type": "movie",
+      "id": 1751701,
+      "title": "After Impact"
+    },
+    {
+      "type": "movie",
       "id": 49046,
       "title": "All Quiet on the Western Front"
     },
@@ -42,6 +47,16 @@
       "type": "movie",
       "id": 1236045,
       "title": "Animals"
+    },
+    {
+      "type": "movie",
+      "id": 329865,
+      "title": "Arrival"
+    },
+    {
+      "type": "movie",
+      "id": 980431,
+      "title": "Avatar Aang: The Last Airbender"
     },
     {
       "type": "movie",
@@ -70,13 +85,33 @@
     },
     {
       "type": "movie",
+      "id": 664416,
+      "title": "Beastie Boys Story"
+    },
+    {
+      "type": "movie",
       "id": 10020,
       "title": "Beauty and the Beast"
     },
     {
       "type": "movie",
+      "id": 204922,
+      "title": "Before I Go to Sleep"
+    },
+    {
+      "type": "movie",
+      "id": 654754,
+      "title": "Billie Eilish: The World's a Little Blurry"
+    },
+    {
+      "type": "movie",
       "id": 855,
       "title": "Black Hawk Down"
+    },
+    {
+      "type": "movie",
+      "id": 335984,
+      "title": "Blade Runner"
     },
     {
       "type": "movie",
@@ -115,6 +150,11 @@
     },
     {
       "type": "movie",
+      "id": 1776531,
+      "title": "Clown Panic"
+    },
+    {
+      "type": "movie",
       "id": 15196,
       "title": "Clue"
     },
@@ -142,6 +182,26 @@
       "type": "movie",
       "id": 1204680,
       "title": "Coyote vs. Acme"
+    },
+    {
+      "type": "movie",
+      "id": 1400288,
+      "title": "Deaf President Now!"
+    },
+    {
+      "type": "movie",
+      "id": 1311031,
+      "title": "Demon Slayer: Kimetsu no Yaiba Infinity Castle"
+    },
+    {
+      "type": "movie",
+      "id": 20352,
+      "title": "Despicable Me"
+    },
+    {
+      "type": "movie",
+      "id": 1132687,
+      "title": "Devil in the Ozarks"
     },
     {
       "type": "movie",
@@ -185,6 +245,11 @@
     },
     {
       "type": "movie",
+      "id": 911430,
+      "title": "F1"
+    },
+    {
+      "type": "movie",
       "id": 1101412,
       "title": "Fall 2: Deadpoint"
     },
@@ -215,6 +280,11 @@
     },
     {
       "type": "movie",
+      "id": 671,
+      "title": "Harry Potter and the Philosopher's Stone"
+    },
+    {
+      "type": "movie",
       "id": 1263337,
       "title": "Heart of the Beast"
     },
@@ -222,6 +292,11 @@
       "type": "movie",
       "id": 1058424,
       "title": "Hope"
+    },
+    {
+      "type": "movie",
+      "id": 1327819,
+      "title": "Hoppers"
     },
     {
       "type": "movie",
@@ -245,13 +320,28 @@
     },
     {
       "type": "movie",
+      "id": 1790935,
+      "title": "Instadocs: AI Gone Wild"
+    },
+    {
+      "type": "movie",
       "id": 157336,
       "title": "Interstellar"
     },
     {
       "type": "movie",
+      "id": 1612018,
+      "title": "Jackass: Best and Last"
+    },
+    {
+      "type": "movie",
       "id": 1234139,
       "title": "Jailer 2"
+    },
+    {
+      "type": "movie",
+      "id": 1273196,
+      "title": "Jim Henson Idea Man"
     },
     {
       "type": "movie",
@@ -270,6 +360,11 @@
     },
     {
       "type": "movie",
+      "id": 843352,
+      "title": "Legend of the White Dragon"
+    },
+    {
+      "type": "movie",
       "id": 1512493,
       "title": "LEGO Friends: Heartlake the Musical"
     },
@@ -280,6 +375,11 @@
     },
     {
       "type": "movie",
+      "id": 1014890,
+      "title": "Louis Armstrong's Black & Blues"
+    },
+    {
+      "type": "movie",
       "id": 1381078,
       "title": "Love of Your Life"
     },
@@ -287,6 +387,11 @@
       "type": "movie",
       "id": 1594914,
       "title": "Lucky Strike"
+    },
+    {
+      "type": "movie",
+      "id": 1386628,
+      "title": "Marvel Studios Assembled: The Making of Deadpool & Wolverine"
     },
     {
       "type": "movie",
@@ -305,6 +410,11 @@
     },
     {
       "type": "movie",
+      "id": 934323,
+      "title": "Mickey: The Story of a Mouse"
+    },
+    {
+      "type": "movie",
       "id": 1315772,
       "title": "Minions & Monsters"
     },
@@ -315,6 +425,11 @@
     },
     {
       "type": "movie",
+      "id": 1096228,
+      "title": "Musk"
+    },
+    {
+      "type": "movie",
       "id": 1288445,
       "title": "Mutiny"
     },
@@ -322,6 +437,11 @@
       "type": "movie",
       "id": 1010581,
       "title": "My Fault"
+    },
+    {
+      "type": "movie",
+      "id": 1755291,
+      "title": "NAZA"
     },
     {
       "type": "movie",
@@ -355,6 +475,11 @@
     },
     {
       "type": "movie",
+      "id": 10601,
+      "title": "Peter Pan"
+    },
+    {
+      "type": "movie",
       "id": 1232569,
       "title": "Pinocchio: Unstrung"
     },
@@ -362,6 +487,11 @@
       "type": "movie",
       "id": 1302904,
       "title": "Practical Magic 2"
+    },
+    {
+      "type": "movie",
+      "id": 1375441,
+      "title": "Primetime"
     },
     {
       "type": "movie",
@@ -415,6 +545,11 @@
     },
     {
       "type": "movie",
+      "id": 417384,
+      "title": "Scary Stories to Tell in the Dark"
+    },
+    {
+      "type": "movie",
       "id": 424,
       "title": "Schindler's List"
     },
@@ -427,6 +562,16 @@
       "type": "movie",
       "id": 787747,
       "title": "Shell"
+    },
+    {
+      "type": "movie",
+      "id": 11324,
+      "title": "Shutter Island"
+    },
+    {
+      "type": "movie",
+      "id": 961722,
+      "title": "Sidney"
     },
     {
       "type": "movie",
@@ -450,8 +595,23 @@
     },
     {
       "type": "movie",
+      "id": 569094,
+      "title": "Spider-Man: Across the Spider-Verse"
+    },
+    {
+      "type": "movie",
       "id": 969681,
       "title": "Spider-Man: Brand New Day"
+    },
+    {
+      "type": "movie",
+      "id": 129,
+      "title": "Spirited Away"
+    },
+    {
+      "type": "movie",
+      "id": 1058699,
+      "title": "STILL: A Michael J. Fox Movie"
     },
     {
       "type": "movie",
@@ -472,6 +632,16 @@
       "type": "movie",
       "id": 9591,
       "title": "That Thing You Do!"
+    },
+    {
+      "type": "movie",
+      "id": 414906,
+      "title": "The Batman"
+    },
+    {
+      "type": "movie",
+      "id": 1251636,
+      "title": "The Bloody Hundredth"
     },
     {
       "type": "movie",
@@ -500,6 +670,16 @@
     },
     {
       "type": "movie",
+      "id": 122917,
+      "title": "The Hobbit: The Battle of the Five Armies"
+    },
+    {
+      "type": "movie",
+      "id": 1368166,
+      "title": "The Housemaid"
+    },
+    {
+      "type": "movie",
       "id": 843527,
       "title": "The Idea of You"
     },
@@ -515,8 +695,23 @@
     },
     {
       "type": "movie",
+      "id": 122,
+      "title": "The Lord of the Rings: The Return of the King"
+    },
+    {
+      "type": "movie",
       "id": 1032863,
       "title": "The Love Hypothesis"
+    },
+    {
+      "type": "movie",
+      "id": 198663,
+      "title": "The Maze Runner"
+    },
+    {
+      "type": "movie",
+      "id": 9479,
+      "title": "The Nightmare Before Christmas"
     },
     {
       "type": "movie",
@@ -530,6 +725,11 @@
     },
     {
       "type": "movie",
+      "id": 1301421,
+      "title": "The Sheep Detectives"
+    },
+    {
+      "type": "movie",
       "id": 1281331,
       "title": "The Social Reckoning"
     },
@@ -537,6 +737,11 @@
       "type": "movie",
       "id": 502356,
       "title": "The Super Mario Bros. Movie"
+    },
+    {
+      "type": "movie",
+      "id": 1226863,
+      "title": "The Super Mario Galaxy Movie"
     },
     {
       "type": "movie",
@@ -550,13 +755,28 @@
     },
     {
       "type": "movie",
+      "id": 1330395,
+      "title": "The White House Effect"
+    },
+    {
+      "type": "movie",
       "id": 1184918,
       "title": "The Wild Robot"
     },
     {
       "type": "movie",
+      "id": 1168190,
+      "title": "The Wrecking Crew"
+    },
+    {
+      "type": "movie",
       "id": 597,
       "title": "Titanic"
+    },
+    {
+      "type": "movie",
+      "id": 361743,
+      "title": "Top Gun: Maverick"
     },
     {
       "type": "movie",
@@ -595,6 +815,11 @@
     },
     {
       "type": "movie",
+      "id": 1078605,
+      "title": "Weapons"
+    },
+    {
+      "type": "movie",
       "id": 1255833,
       "title": "Whalefall"
     },
@@ -602,6 +827,11 @@
       "type": "movie",
       "id": 244786,
       "title": "Whiplash"
+    },
+    {
+      "type": "movie",
+      "id": 836919,
+      "title": "Who Are You, Charlie Brown?"
     },
     {
       "type": "movie",
@@ -660,6 +890,11 @@
     },
     {
       "type": "tv",
+      "id": 50821,
+      "title": "Among Friends"
+    },
+    {
+      "type": "tv",
       "id": 32608,
       "title": "Ancient Aliens"
     },
@@ -672,6 +907,11 @@
       "type": "tv",
       "id": 2050,
       "title": "Arena"
+    },
+    {
+      "type": "tv",
+      "id": 284833,
+      "title": "Avatar: Seven Havens"
     },
     {
       "type": "tv",
@@ -770,6 +1010,11 @@
     },
     {
       "type": "tv",
+      "id": 40,
+      "title": "Dallas"
+    },
+    {
+      "type": "tv",
       "id": 1508,
       "title": "Dancing with the Stars"
     },
@@ -805,6 +1050,11 @@
     },
     {
       "type": "tv",
+      "id": 2625,
+      "title": "Diagnosis: Murder"
+    },
+    {
+      "type": "tv",
       "id": 40605,
       "title": "Die Harald Schmidt Show"
     },
@@ -812,6 +1062,11 @@
       "type": "tv",
       "id": 57243,
       "title": "Doctor Who"
+    },
+    {
+      "type": "tv",
+      "id": 57911,
+      "title": "Doraemon"
     },
     {
       "type": "tv",
@@ -847,6 +1102,11 @@
       "type": "tv",
       "id": 80748,
       "title": "FBI"
+    },
+    {
+      "type": "tv",
+      "id": 3452,
+      "title": "Frasier"
     },
     {
       "type": "tv",
@@ -925,6 +1185,11 @@
     },
     {
       "type": "tv",
+      "id": 95479,
+      "title": "JUJUTSU KAISEN"
+    },
+    {
+      "type": "tv",
       "id": 2661,
       "title": "Kamen Rider"
     },
@@ -932,6 +1197,11 @@
       "type": "tv",
       "id": 261939,
       "title": "Kamen Rider Geats"
+    },
+    {
+      "type": "tv",
+      "id": 2122,
+      "title": "King of the Hill"
     },
     {
       "type": "tv",
@@ -1025,6 +1295,11 @@
     },
     {
       "type": "tv",
+      "id": 3497,
+      "title": "Moesha"
+    },
+    {
+      "type": "tv",
       "id": 37288,
       "title": "Morgenmagazin"
     },
@@ -1060,13 +1335,38 @@
     },
     {
       "type": "tv",
+      "id": 34860,
+      "title": "Ninja Boy Rantaro"
+    },
+    {
+      "type": "tv",
+      "id": 38693,
+      "title": "Ninjago: Masters of Spinjitzu"
+    },
+    {
+      "type": "tv",
       "id": 3562,
       "title": "NOVA"
     },
     {
       "type": "tv",
+      "id": 18053,
+      "title": "Nurse Jackie"
+    },
+    {
+      "type": "tv",
       "id": 37854,
       "title": "One Piece"
+    },
+    {
+      "type": "tv",
+      "id": 57532,
+      "title": "PAW Patrol"
+    },
+    {
+      "type": "tv",
+      "id": 1877,
+      "title": "Phineas and Ferb"
     },
     {
       "type": "tv",
@@ -1095,6 +1395,11 @@
     },
     {
       "type": "tv",
+      "id": 31132,
+      "title": "Regular Show"
+    },
+    {
+      "type": "tv",
       "id": 319412,
       "title": "Reporter"
     },
@@ -1102,6 +1407,11 @@
       "type": "tv",
       "id": 60625,
       "title": "Rick and Morty"
+    },
+    {
+      "type": "tv",
+      "id": 3022,
+      "title": "Rugrats"
     },
     {
       "type": "tv",
@@ -1217,6 +1527,11 @@
       "type": "tv",
       "id": 63770,
       "title": "The Late Show with Stephen Colbert"
+    },
+    {
+      "type": "tv",
+      "id": 273247,
+      "title": "The Lowdown"
     },
     {
       "type": "tv",
@@ -1347,6 +1662,11 @@
       "type": "tv",
       "id": 14424,
       "title": "Young Hearts"
+    },
+    {
+      "type": "tv",
+      "id": 71728,
+      "title": "Young Sheldon"
     },
     {
       "type": "tv",
