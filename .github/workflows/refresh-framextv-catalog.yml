@@ -1,33 +1,79 @@
 name: Refresh FrameXTV Listings
+
 on:
   workflow_dispatch:
   schedule:
     - cron: '17 8 * * *'
+
 permissions:
   contents: write
+
+# Prevent two catalog scans from overwriting each other's saved crawl progress.
+concurrency:
+  group: framelounge-catalog-refresh
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install headless browser used for JavaScript-rendered FrameXTV listings
+      - name: Install Chromium for JavaScript-rendered FrameXTV listings
         run: |
           python -m pip install playwright
           python -m playwright install --with-deps chromium
-      - name: Collect published FrameXTV titles (no video stream testing)
-        run: python3 scripts/update_framextv_catalog.py
-      - name: Publish refreshed catalog to the public repository
+      - name: Automatically scan successive catalog batches
+        shell: bash
         run: |
-          if git diff --quiet -- framextv-catalog.json && git diff --quiet -- framextv-crawl-progress.json && test -z "$(git ls-files --others --exclude-standard framextv-crawl-progress.json)"; then
-            echo 'No catalog changes'
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import subprocess
+          import sys
+          import time
+
+          progress = pathlib.Path('framextv-crawl-progress.json')
+          catalog = pathlib.Path('framextv-catalog.json')
+          start = time.monotonic()
+          max_seconds = 25 * 60  # reserve time for commit / GitHub Actions cleanup
+          max_batches = 16
+
+          for batch in range(1, max_batches + 1):
+              print(f'\n=== Automatic FrameXTV batch {batch}/{max_batches} ===', flush=True)
+              subprocess.run([sys.executable, 'scripts/update_framextv_catalog.py'], check=True)
+              state = json.loads(progress.read_text(encoding='utf-8'))
+              remaining = int(state.get('remaining_count', 0))
+              visited = int(state.get('visited_count', 0))
+              data = json.loads(catalog.read_text(encoding='utf-8'))
+              print(f'Batch {batch} complete: {len(data.get("items", []))} unique titles, '
+                    f'{remaining} queued URLs, {visited} visited URLs', flush=True)
+
+              # The collector marks a completed pass by resetting visited_count
+              # to zero and reseeding next day's update queue.
+              if visited == 0:
+                  print('Reached the end of the queued browse pages for this pass.', flush=True)
+                  break
+              if time.monotonic() - start >= max_seconds:
+                  print('Stopping safely at the time budget. The daily scheduled run '
+                        'will resume the saved queue automatically.', flush=True)
+                  break
+          else:
+              print('Stopped at batch cap; next scheduled run will resume.', flush=True)
+          PY
+      - name: Publish catalog and saved crawl progress
+        shell: bash
+        run: |
+          if git diff --quiet -- framextv-catalog.json framextv-crawl-progress.json && \
+             test -z "$(git ls-files --others --exclude-standard framextv-crawl-progress.json)"; then
+            echo 'No catalog or crawl-progress changes'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add framextv-catalog.json framextv-crawl-progress.json
-          git commit -m 'Expand FrameXTV catalog via resumable browse discovery'
+          git commit -m 'Refresh FrameXTV catalog and continue crawl automatically'
           git push
