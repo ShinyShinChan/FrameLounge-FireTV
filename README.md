@@ -1,3 +1,28 @@
+# Frame Lounge — v1.6.1 Catalog Collector Hotfix (no APK installation required)
+
+The previous GitHub catalog workflow reached FrameXTV, but returned zero matches because it relied on simple HTML anchors. This version inspects HTML, serialized page data, and optionally a headless Chromium rendering of the **public browse pages**. It does not probe video streams.
+
+Your Fire Stick app loads `framextv-catalog.json` from GitHub automatically, so successful catalog refreshes **do not require a new APK**. The app itself is still v1.6.0; this is a server-side collection fix.
+
+## Update your existing repository
+
+1. Extract this ZIP on your Windows PC.
+2. Open PowerShell inside its root folder.
+3. Run `powershell -ExecutionPolicy Bypass -File .\UPDATE-EXISTING-WINDOWS.ps1`. You have already installed Git, Python, and GitHub CLI.
+4. Open https://github.com/ShinyShinChan/FrameLounge-FireTV/actions and run **Refresh FrameXTV Listings** manually.
+5. The collector logs report numbers of titles and whether it used HTML or Chromium. Confirm `framextv-catalog.json` grew.
+6. On your Fire Stick: **Frame Lounge → Settings → Refresh FrameXTV Listings**. Restart the app if necessary.
+
+If the refresh fails again, share the *new log* including HTML bytes / anchors / scripts / network-title counts; it will help identify a site blocking page or API-only catalog. The previous 18-title JSON will remain unchanged.
+
+## Compatibility
+
+Keep your existing installed APK. This update changes only GitHub-side collection files. The app still preserves Likes, Dislikes, and Watch Later locally. Browser scanning reads public catalog pages and public listing data; it does not open embeds, attempt playback, or validate providers.
+
+## Limits
+
+The script has not been tested against the live FrameXTV HTML from this execution environment. If the site blocks CI/headless browsers, returns captchas, or exposes title data only behind authenticated endpoints, this collector can still fail. It will not invent a catalog or replace your last valid list.
+
 # Frame Lounge — Fire OS app · Expanded Catalog VHS Edition v1.6.0 · public-safe
 
 A Fire TV remote-friendly VHS-shelf browser of FrameXTV-listed movies and television, with FrameXTV iframe playback. Android source + GitHub Actions APK builder. **The ZIP contains no personal TMDB credentials or signing keys; it is safe to publish as a new public repository.**

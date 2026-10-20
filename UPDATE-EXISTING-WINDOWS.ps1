@@ -30,7 +30,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Git staging failed.' }
         & git diff --cached --quiet
         if ($LASTEXITCODE -eq 0) { Write-Host 'Repository already matches this version.'; exit 0 }
-        & git -c user.name='ShinyShinChan' -c user.email='41898282+ShinyShinChan@users.noreply.github.com' commit -m 'Frame Lounge VHS v1.6 expanded FrameXTV catalog and VHS shelves'
+        & git -c user.name='ShinyShinChan' -c user.email='41898282+ShinyShinChan@users.noreply.github.com' commit -m 'Frame Lounge v1.6.1 browser-aware catalog collection'
         if ($LASTEXITCODE -ne 0) { throw 'Git commit failed.' }
         & git push origin HEAD:main
         if ($LASTEXITCODE -ne 0) { throw 'Git push failed. Check repository permissions and GitHub account.' }

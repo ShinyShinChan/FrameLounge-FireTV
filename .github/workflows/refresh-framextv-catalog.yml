@@ -8,14 +8,19 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Collect listed movie and TV links (no stream checks)
+      - name: Install headless browser used for JavaScript-rendered FrameXTV listings
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Collect published FrameXTV titles (no video stream testing)
         run: python3 scripts/update_framextv_catalog.py
-      - name: Publish changed listings
+      - name: Publish refreshed catalog to the public repository
         run: |
           if git diff --quiet -- framextv-catalog.json; then
             echo 'No catalog changes'
@@ -24,5 +29,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add framextv-catalog.json
-          git commit -m 'Refresh listed FrameXTV titles'
+          git commit -m 'Refresh public FrameXTV title catalog'
           git push
