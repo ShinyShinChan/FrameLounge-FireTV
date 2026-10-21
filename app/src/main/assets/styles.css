@@ -71,3 +71,69 @@
 .player-overlay{visibility:visible;transition:opacity .24s ease}
 .player-view:not(.controls-visible) .player-controls{pointer-events:none}
 .player-view:not(.controls-visible) .player-controls button{pointer-events:none}
+
+/* FRAME_LOUNGE_FAST_SHELVES_V2: lightweight Fire TV layout; no blur or multi-layer shadows on every tape. */
+.hero{min-height:250px;height:auto;max-height:320px;border-radius:15px;box-shadow:none;margin:0 30px} .hero:before{display:none}.hero-content{padding:22px 5% 25px;width:85%}.hero h1{font-size:clamp(35px,3.1vw,51px);margin:8px 0 8px;text-shadow:none}.hero-overview{font-size:14px;line-height:1.35;-webkit-line-clamp:2}.hero-buttons{margin-top:14px}.hero-buttons .action-button{min-height:42px;font-size:14px}.action-button{backdrop-filter:none;box-shadow:none}.fast-rows{padding-top:10px}.fast-row{margin:12px 38px 23px;content-visibility:auto;contain-intrinsic-size:auto 270px}
+.fast-row .carousel-row{gap:15px;padding:8px 5px 17px;scroll-behavior:auto;overscroll-behavior:contain}
+.fast-tape{width:135px;min-width:135px;flex:0 0 135px;padding:0;border:0;background:transparent;box-shadow:none!important;transition:none!important;transform:none!important}
+.fast-tape .fast-case{display:flex;height:176px;position:relative;overflow:hidden;border-radius:6px;border:1px solid #ffffff27;background:#212538;box-shadow:2px 3px 6px #0006}
+.fast-tape .fast-spine{width:17px;flex:0 0 17px;overflow:hidden;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:1.1px;text-align:center;font-size:9px;color:#ccbfdf;background:#161a25;border-left:1px solid #ffffff26}
+.fast-tape .fast-cover{position:relative;flex:1;overflow:hidden;background:linear-gradient(145deg,var(--shade1),var(--shade2))}
+.fast-tape .fast-cover img{display:block;width:100%;height:100%;object-fit:cover;position:relative;z-index:2}
+.fast-tape .fast-cover-letter{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:58px;color:#ffffff33;font-weight:900}
+.fast-tape .fast-caption{display:block;min-height:44px;padding-top:7px;line-height:1.2;text-align:left}
+.fast-tape .fast-caption strong{display:block;font-size:13px;line-height:1.18;color:#f5f2fc;white-space:normal;max-height:31px;overflow:hidden}
+.fast-tape .fast-caption small{display:block;font-size:10px;color:#bcb7cb;margin-top:3px}
+.fast-tape:focus,.fast-tape:focus-visible{outline:3px solid #d0b8ff!important;outline-offset:3px;box-shadow:0 0 0 3px #473969!important}
+.fast-more{width:135px;height:180px;min-width:135px;flex:0 0 135px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#eee3fc;background:#29283e;border:2px dashed #a38dbb}
+.fast-more span{font-size:35px}.fast-more strong{font-size:13px}.fast-more small{font-size:11px}
+.fast-more:focus{outline:3px solid #e4cfff;outline-offset:3px}
+.fast-filters{background:#151827;border:1px solid #ffffff20;border-radius:12px;margin:18px 40px;padding:18px 20px}
+.fast-filter-title{display:flex;align-items:center;gap:15px;flex-wrap:wrap;padding:0 0 10px}.fast-filter-title strong{font-size:21px}.fast-filter-title span{font-size:12px;color:#b2abc9}
+.filter-row{display:flex;align-items:flex-start;gap:14px;margin:11px 0}.filter-label{min-width:101px;color:#d1c4ee;font-size:12px;font-weight:800;text-transform:uppercase;padding-top:8px}
+.filter-options{display:flex;flex-wrap:wrap;gap:6px}.filter-chip{font-size:12px;min-width:34px;padding:7px 10px;border:1px solid #675c78;border-radius:7px;color:#dfdaed;background:#23243b;cursor:pointer}
+.filter-chip.active{background:#8567b5;color:#fff;border-color:#b5a0db}.filter-chip:focus{outline:3px solid #e6dbfc;outline-offset:2px}
+.fast-nudge,.fast-empty,.fast-info{margin:14px 38px;border:1px solid #746492;background:#211e35;border-radius:9px;padding:14px 20px;color:#e2d8ee;font-size:13px}
+.fast-info{background:#151827;border-color:#ffffff20}
+.hero-abstract,.vhs-case:not(.vhs-case-large){display:none}
+.poster-card.fast-tape:hover{transform:none!important}
+/* Keep the playback overlay and its five-second timeout exactly as they were. */
+
+/* FRAME_LOUNGE_OFFICIAL_ARTWORK_2026_10 */
+/* Three static image layers only, no image transitions/animations: Fire TV friendly. */
+.brand{justify-content:center;align-items:center;margin-left:0;margin-bottom:32px;padding:0 2px}
+.brand-logo{width:100%;max-width:218px;height:auto;display:block;object-fit:contain;filter:drop-shadow(0 5px 8px rgba(0,0,0,.5))}
+.boot-logo{background:linear-gradient(rgba(8,7,15,.53),rgba(8,7,15,.72)),url('frame-lounge-background.webp') center / cover no-repeat}
+.boot-logo .boot-vhs{width:min(50vw,520px);max-width:95vw;height:auto;max-height:290px;object-fit:contain}
+.boot-logo p{text-align:center;color:#f4dbbb;text-shadow:0 2px 10px #000}
+.hero{background-image:linear-gradient(90deg,rgba(10,9,16,.96) 0%,rgba(10,9,16,.87) 33%,rgba(10,9,16,.26) 78%),var(--hero-bg,url('frame-lounge-featured-bg.webp'))}
+@media(max-width:1150px){.brand-logo{max-width:166px}}
+
+/* FRAME_LOUNGE_COMPACT_PAGES_V2_1: compact 1080p/720p VHS cases, four+ shelf view. */
+.hero{min-height:150px!important;max-height:172px!important;height:auto!important;margin:0 28px!important;border-radius:11px!important}
+.hero-content{padding:14px 4% 13px!important;width:87%!important}.hero h1{font-size:clamp(26px,2.55vw,40px)!important;margin:5px 0!important}
+.hero-overview{max-height:43px;overflow:hidden;font-size:12px!important}.hero-buttons{margin-top:8px!important}.hero-buttons .action-button{min-height:36px!important;padding:8px 15px!important}
+.fast-rows{padding-top:2px!important}.fast-row{margin:5px 28px 10px!important;min-height:0!important;contain-intrinsic-size:auto 185px!important}
+.fast-row .row-heading{margin-bottom:1px!important}.fast-row .row-heading h2{font-size:18px!important;line-height:22px!important}
+.fast-row .carousel-row{gap:11px!important;padding:4px 3px 10px!important;scroll-behavior:auto!important;min-height:142px}
+.fast-tape{width:105px!important;min-width:105px!important;flex:0 0 105px!important}
+.fast-tape .fast-case{height:124px!important;border-radius:4px!important}
+.fast-tape .fast-spine{width:13px!important;flex:0 0 13px!important;font-size:8px!important}
+.fast-tape .fast-caption{min-height:34px!important;padding-top:4px!important}
+.fast-tape .fast-caption strong{font-size:11px!important;line-height:1.14!important;max-height:25px!important}
+.fast-tape .fast-caption small{font-size:9px!important;margin-top:2px!important}
+.fast-more{width:105px!important;min-width:105px!important;flex:0 0 105px!important;height:123px!important;gap:4px!important}
+.fast-more span{font-size:26px!important}.fast-more strong{font-size:11px!important}.fast-more small{font-size:9px!important}
+.row-count{font-size:11px!important}
+.page-browse{padding-bottom:20px}.page-title{margin:11px 35px 9px}
+.page-title h1{font-size:31px;line-height:1.16;margin:0}.page-title p{margin:5px 0;color:#b8aeca;font-size:13px}
+.page-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:12px 35px 13px;padding:9px 0}
+.page-toolbar .action-button{min-height:37px;font-size:13px}.page-indicator{color:#e0d7f8;font-weight:700;font-size:14px;min-width:165px;text-align:center}
+.page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:15px 13px;padding:5px 35px 25px}
+.page-grid .fast-tape{width:100%!important;min-width:0!important;flex:none!important}
+.page-toolbar-bottom{margin-top:8px;border-top:1px solid #ffffff29;padding-top:18px}
+@media(max-height:780px){.hero{min-height:114px!important;max-height:137px!important}
+.hero-overview{display:none!important}.fast-row{margin-top:3px!important;margin-bottom:7px!important}
+.fast-tape .fast-case{height:105px!important}.fast-row .carousel-row{min-height:125px}
+.fast-more{height:105px!important}.fast-tape{width:95px!important;min-width:95px!important;flex:0 0 95px!important}
+.page-grid{grid-template-columns:repeat(auto-fill,minmax(95px,1fr))}}

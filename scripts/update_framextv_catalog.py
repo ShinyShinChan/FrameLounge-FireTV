@@ -54,6 +54,30 @@ def title_record(kind, ident, title):
     return {'type': kind, 'id': ident, 'title': title}
 
 
+# FRAME_LOUNGE_CATALOG_METADATA_V2 — only public attributes attached to titles
+# actually linked/listed on FrameXTV, not results from an unrelated TMDB search.
+def public_metadata(record, value):
+    out=dict(record)
+    if not isinstance(value,dict):return out
+    genres=value.get('genre_ids') or value.get('genreIds') or []
+    if isinstance(genres,list):
+        out['genre_ids']=[x for x in genres if isinstance(x,int) and 0<x<100000][:12]
+    released=value.get('release_date') or value.get('first_air_date') or ''
+    if isinstance(released,str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}',released):
+        out['release_date']=released
+    runtime=value.get('runtime')
+    if isinstance(runtime,int) and 1<=runtime<=1000:out['runtime']=runtime
+    if isinstance(value.get('episode_run_time'),list):
+        times=[v for v in value['episode_run_time'] if isinstance(v,int) and 0<v<=1000]
+        if times:out['runtime']=times[0]
+    pop=value.get('popularity')
+    if isinstance(pop,(int,float)) and 0<=pop<=100000:out['popularity']=round(pop,2)
+    poster=value.get('poster_path')
+    if isinstance(poster,str) and re.fullmatch(r'/[A-Za-z0-9/_-]+\.(?:jpg|png|webp)',poster):
+        out['poster_path']=poster
+    return out
+
+
 def kind_from_page(url):
     return 'tv' if urlsplit(url).path.startswith('/tv') else 'movie'
 
@@ -132,7 +156,9 @@ def extract_objects(value, default_kind, result, depth=0):
         if kind in ('movie','tv') and isinstance(t,str) and evidence:
             r = title_record(kind, value.get('id') or value.get('tmdb_id') or value.get('tmdbId'), t)
             if r:
-                result[(r['type'], r['id'])] = r
+                key=(r['type'],r['id'])
+                enriched=public_metadata(r,value)
+                result[key]=choose(result.get(key),enriched) if 'choose' in globals() else enriched
         for v in value.values():
             if isinstance(v,(dict,list)):
                 extract_objects(v, default_kind, result, depth+1)
@@ -308,13 +334,16 @@ class BrowserCollector:
 
 
 def choose(current,new):
-    if current is None:
-        return new
+    if current is None:return new
     old_placeholder=current['title'].startswith(('Movie ','Series '))
     new_placeholder=new['title'].startswith(('Movie ','Series '))
-    if old_placeholder and not new_placeholder:
-        return new
-    return current
+    result=dict(new if old_placeholder and not new_placeholder else current)
+    # A newer crawl may discover structured metadata where an earlier page
+    # exposed only an anchor title; don't discard those public attributes.
+    for field in ('genre_ids','release_date','runtime','popularity','poster_path'):
+        if field not in result and field in new:result[field]=new[field]
+        if field not in result and field in current:result[field]=current[field]
+    return result
 
 
 def main():

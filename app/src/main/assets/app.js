@@ -51,7 +51,13 @@
       if(!['movie','tv'].includes(type) || !Number.isSafeInteger(id) || id<=0 || id>999999999 || title.length<1 || title.length>170) continue;
       const k=type+':'+id;
       if(seen.has(k))continue;seen.add(k);
-      items.push({type,id,title,year:String(r.year||'').slice(0,4),genre:type==='tv'?'Series':'Movie',poster:null,backdrop:null,overview:'',rating:null,demo:false});
+      const ids=Array.isArray(r.genre_ids)?r.genre_ids:[];
+      items.push({type,id,title,year:String(r.year||(r.release_date||r.first_air_date||'').slice(0,4)).slice(0,4),
+        genre:type==='tv'?'Series':'Movie',genreIds:ids.filter(n=>Number.isInteger(n)&&n>0&&n<100000).slice(0,10),
+        releaseDate:String(r.release_date||r.first_air_date||'').slice(0,10),
+        runtime:Number(r.runtime)||0,popularity:Number(r.popularity)||0,
+        poster:/^\/[a-zA-Z0-9/_-]+\.(jpg|png|webp)$/.test(r.poster_path||'')?r.poster_path:null,
+        backdrop:null,overview:'',rating:null,demo:false});
     }
     if(items.length===0) throw new Error('No listed FrameXTV titles in feed');
     return {schema:1,version:String(data.version||'unknown').slice(0,60),items};
@@ -128,6 +134,16 @@
       library.set(k,{...(old||{}), ...v});
     }
   }
+  // FRAME_LOUNGE_FAST_SHELVES_V2 — small persistent TMDB cache; no secrets in the catalog.
+  const metadataCache=getStore('titleMetadataV2',{});
+  let metadataSaveTimer=null;
+  function saveMetadataSoon(){
+    clearTimeout(metadataSaveTimer);
+    metadataSaveTimer=setTimeout(()=>{
+      const entries=Object.entries(metadataCache).slice(-2600);
+      saveStore('titleMetadataV2',Object.fromEntries(entries));
+    },1800);
+  }
   function persistShelfItems() {
     // Only store title metadata for selected items, not all TMDB results or credentials.
     const keys=[...new Set([...state.favorites,...state.likes,...state.dislikes])].slice(0,600);
@@ -148,6 +164,8 @@
     config:startingConfig, configUrl:getStore('configUrl',defaultConfigUrl), configChecked:getStore('configChecked',0), configStatus:'Using saved player settings',
     favorites:getStore('favorites',[]), likes:getStore('likes',[]), dislikes:getStore('dislikes',[]), history:getStore('history',[]),
     rows:null, loading:false, message:null, lastFocus:null, customSource:getStore('customSource',''),
+    filterLetter:'All',filterGenre:'All',filterRuntime:'All',
+    trendingKeys:getStore('trendingKeysV2',[]),
     frameCatalog:cachedFrameCatalog, allowedKeys:new Set(cachedFrameCatalog.items.map(x=>x.type+':'+x.id)),
     catalogStatus:'Using saved FrameXTV title list', catalogChecked:0
   };
@@ -156,8 +174,15 @@
     for(const entry of feed.items) {
       const k=entry.type+':'+entry.id;
       const prior=library.get(k);
-      if(prior)library.set(k,{...entry,...prior});
-      else library.set(k,entry);
+      const enriched=metadataCache[k];
+      // Fresh published listing must retain source title and ID; TMDB cache supplies optional artwork and genres.
+      library.set(k,{...entry,...(prior||{}),...(enriched||{}),id:entry.id,type:entry.type,
+        title:enriched?.title||entry.title,
+        genreIds:enriched?.genreIds?.length?enriched.genreIds:(entry.genreIds||prior?.genreIds||[]),
+        poster:enriched?.poster||entry.poster||prior?.poster||null,
+        releaseDate:enriched?.releaseDate||entry.releaseDate||prior?.releaseDate||'',
+        runtime:enriched?.runtime||entry.runtime||prior?.runtime||0,
+        popularity:enriched?.popularity||entry.popularity||prior?.popularity||0});
     }
   }
   mergeFeedTitles(state.frameCatalog);
@@ -179,30 +204,115 @@
       state.catalogStatus='FrameXTV listed-title feed updated: '+feed.version;
       if(force)showMessage('FrameXTV listings refreshed. No stream testing needed.');
       if(!state.playing && !state.detail)render(document.activeElement?.dataset?.focus);
-      if(state.key)enrichListedPosters();
+      if(state.key)setTimeout(enrichListedPosters,2000);
     }catch(err){
       state.catalogStatus='Using saved FrameXTV listings ('+String(err.message||'network error').slice(0,60)+')';
       if(force)showMessage('Could not refresh listings. Saved tapes remain available.');
     }
   }
-  let enriching=false;
+  // Load artwork only for important/visible tapes, and remember it between launches.
+  // Never render or fetch all 1,000+ tapes at once on a small Fire TV Stick.
+  let enriching=false, enrichmentStarted=false;
+  let lastRemoteActivity=Date.now(), metadataRenderTimer=null;
+  function scheduleMetadataRender(){
+    clearTimeout(metadataRenderTimer);
+    metadataRenderTimer=setTimeout(()=>{
+      if(state.playing||state.detail||!['home','movies','series'].includes(state.route))return;
+      if(Date.now()-lastRemoteActivity<2500){scheduleMetadataRender();return;}
+      render(document.activeElement?.dataset?.focus);
+    },2400);
+  }
+  const KIDS_CLASSIC_TITLES=[
+    'matilda','hook','stuart little','the little vampire','home alone','the lion king',
+    'the goonies','hocus pocus','the sandlot','the parent trap','casper',
+    'the princess bride','a little princess','babe','free willy','the secret garden',
+    'honey, i shrunk the kids','the pagemaster','aladdin','beauty and the beast',
+    'toy story','the iron giant','a goofy movie','the mighty ducks',
+    'the land before time','jumanji','the neverending story','flubber',
+    'air bud','the little rascals','labyrinth','the little mermaid',
+    '101 dalmatians','a bug\'s life','the borrowers'
+  ];
+  const KIDS_POPULAR_TITLES=[
+    'inside out','frozen','moana','zootopia','encanto','coco', 'sonic the hedgehog',
+    'despicable me','minions','kung fu panda','how to train your dragon','the super mario bros.',
+    'the wild robot','the bad guys','the incredibles','finding nemo','toy story',
+    'puss in boots','turning red','luca','elemental','the lion king'
+  ];
+  const GENRES=[['Action',28],['Comedy',35],['Adventure',12],['Sci-Fi',878],
+    ['Fantasy',14],['Animation',16],['Family',10751],['Horror',27],
+    ['Thriller',53],['Mystery',9648],['Drama',18],['Romance',10749],['Crime',80],['Documentary',99]];
+  const TV_GENRES=[['Action & Adventure',10759],['Comedy',35],['Drama',18],
+    ['Sci-Fi & Fantasy',10765],['Crime',80],['Animation',16],['Family',10751]];
+  function genreMatch(t,name){
+    if(name==='All')return true;
+    const mapping=[...GENRES,...TV_GENRES].find(x=>x[0]===name);
+    if(mapping && t.genreIds?.includes(mapping[1]))return true;
+    const fallback=String(t.genre||'').toLowerCase();
+    return fallback.split(/[·,/]/).some(piece=>piece.trim()===name.toLowerCase())||
+           (name==='Sci-Fi'&&fallback.includes('science fiction'));
+  }
+  function classicKids(t){
+    const title=t.title.toLowerCase().replace(/\s*\(\d{4}\)\s*$/,'').trim();
+    return t.type==='movie' && KIDS_CLASSIC_TITLES.some(x=>title===x || title.startsWith(x+':') || title.startsWith(x+' '));
+  }
+  function popularKids(t){
+    const title=t.title.toLowerCase();
+    return t.type==='movie' && (genreMatch(t,'Family')||genreMatch(t,'Animation')||
+      KIDS_POPULAR_TITLES.some(x=>title===x||title.startsWith(x+':')||title.startsWith(x+' ')));
+  }
+  function titleShuffleScore(t){
+    // Stable deterministic backfill avoids alphabetic-order bias while TMDB metadata loads.
+    const id=Number(t.id)||0;const week=Math.floor(Date.now()/604800000);
+    return ((id*1103515245+week*2654435761)>>>0)%9973;
+  }
+  function score(t){
+    const trend=state.trendingKeys.indexOf(keyOf(t));
+    return (trend>=0 ? 20000-trend*125 : 0) +
+      Math.log1p(Math.max(0,Number(t.popularity)||0))*100 +
+      (Number(t.rating)||0)*9 + titleShuffleScore(t)/100;
+  }
+  function rank(titles){return titles.slice().sort((a,b)=>score(b)-score(a));}
+  function modern(t){
+    const date=t.releaseDate;
+    if(!/^\d{4}-\d\d-\d\d$/.test(date||''))return false;
+    const released=Date.parse(date+'T00:00:00Z');
+    return Number.isFinite(released)&&released<=Date.now()&&released>Date.now()-730*86400000;
+  }
+  function runtimeBucket(t, bucket){
+    if(bucket==='All')return true;
+    const n=Number(t.runtime)||0;
+    if(!n)return false;
+    return bucket==='~20'?n<30:bucket==='~40'?n>=30&&n<50:
+      bucket==='~60'?n>=50&&n<75:bucket==='~90'?n>=75&&n<120:
+      bucket==='120+'?n>=120:false;
+  }
   async function enrichListedPosters(){
-    if(enriching || !state.key)return;
-    enriching=true;
+    if(enriching || !state.key || state.playing)return;
+    enriching=true;enrichmentStarted=true;
     try{
-      const pending=listedTitles().filter(t=>!t.poster).slice(0,140);
-      let index=0;
-      await Promise.all(Array.from({length:3},async()=>{
-        while(index<pending.length){
+      const movies=listedTitles('movie'),series=listedTitles('tv');
+      const featured=[...movies.filter(classicKids),...movies.filter(popularKids),
+        ...(state.rows?.nowPlaying||[]).filter(isListed),...movies.filter(modern),
+        ...rank(movies).slice(0,60),...rank(series).slice(0,32)];
+      const all=[...featured,...movies.slice(0,14),...series.slice(0,8)];
+      const seen=new Set();
+      const pending=all.filter(t=>{const k=keyOf(t);if(seen.has(k)||
+        (t.detailLoaded && t.metadataAt))return false;seen.add(k);return true;}).slice(0,90);
+      let index=0,completed=0;
+      await Promise.all(Array.from({length:2},async()=>{
+        while(index<pending.length && state.key && !state.playing){
           const t=pending[index++];
           try{const info=await tmdb(`${t.type}/${t.id}?language=en-US`);
             if(isListed(t))mergeTitle(normalize(info,t.type));
           }catch(_){}
-          await new Promise(resolve=>setTimeout(resolve,260));
+          completed++;
+          if(completed%18===0)scheduleMetadataRender();
+          await new Promise(resolve=>setTimeout(resolve,220));
         }
       }));
-      if(!state.playing && !state.detail && ['home','movies','series','search'].includes(state.route))render(document.activeElement?.dataset?.focus);
-    }finally {enriching=false;}
+      saveMetadataSoon();
+      scheduleMetadataRender();
+    }finally{enriching=false;}
   }
   const icons = {
     home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
@@ -228,17 +338,36 @@
   const keyOf = t => t.type + ':' + t.id;
   const unique = (arr, limit=24) => { const seen=new Set(); return arr.filter(t=> { const k=keyOf(t); if(seen.has(k))return false; seen.add(k); return true; }).slice(0,limit); };
   function normalize(x, kind) {
-    const type = kind || x.media_type || (x.first_air_date ? 'tv' : 'movie');
-    if (!['movie','tv'].includes(type)) return null;
-    return {
-      id:x.id, type, title:x.title || x.name || 'Untitled', year:yearOf(x.release_date || x.first_air_date),
-      genre:x.genres?.map(y=>y.name).join(' · ') || (type==='tv'?'Series':'Movie'),
-      overview:x.overview || '', poster:x.poster_path || null, backdrop:x.backdrop_path || null,
-      rating: Number.isFinite(x.vote_average) ? x.vote_average.toFixed(1) : null,
-      seasonCount:x.number_of_seasons || 0, seasons:x.seasons || null, demo:false
-    };
+    const type=kind||x.media_type||(x.first_air_date?'tv':'movie');
+    if(!['movie','tv'].includes(type))return null;
+    const rawGenres=x.genre_ids||(Array.isArray(x.genres)?x.genres.map(y=>y.id):[]);
+    const durations=type==='tv'?(x.episode_run_time||[]):[];
+    const duration=type==='tv'?(durations.find(n=>n>0)||x.last_episode_to_air?.runtime||0):(x.runtime||0);
+    return {id:x.id,type,title:x.title||x.name||'Untitled',
+      year:yearOf(x.release_date||x.first_air_date),releaseDate:x.release_date||x.first_air_date||'',
+      genre:x.genres?.map(y=>y.name).join(' · ')||(type==='tv'?'Series':'Movie'),
+      genreIds:Array.isArray(rawGenres)?rawGenres.filter(n=>Number.isInteger(n)).slice(0,12):[],
+      runtime:duration,popularity:Number(x.popularity)||0,voteCount:Number(x.vote_count)||0,
+      overview:x.overview||'',poster:x.poster_path||null,backdrop:x.backdrop_path||null,
+      rating:Number.isFinite(x.vote_average)?x.vote_average.toFixed(1):null,
+      seasonCount:x.number_of_seasons||0,seasons:x.seasons||null,
+      detailLoaded:('runtime' in x)||('number_of_seasons' in x)||Array.isArray(x.genres),
+      metadataAt:Date.now(),demo:false};
   }
-  function mergeTitle(t) { if (!t || !t.id) return null; const id=keyOf(t), old=library.get(id); const next={...(old||{}),...t}; library.set(id,next); if(state.favorites.includes(id)||state.likes.includes(id)||state.dislikes.includes(id))persistShelfItems(); return next; }
+  function mergeTitle(t) {
+    if(!t||!t.id)return null;
+    const id=keyOf(t),old=library.get(id),next={...(old||{}),...t};
+    library.set(id,next);
+    if(t.metadataAt){
+      const {type,id,title,year,releaseDate,genre,genreIds,runtime,popularity,
+        voteCount,overview,poster,backdrop,rating,seasonCount,metadataAt,detailLoaded}=next;
+      metadataCache[keyOf(t)]={type,id,title,year,releaseDate,genre,genreIds,runtime,popularity,
+        voteCount,overview,poster,backdrop,rating,seasonCount,metadataAt,detailLoaded};
+      saveMetadataSoon();
+    }
+    if(state.favorites.includes(id)||state.likes.includes(id)||state.dislikes.includes(id))persistShelfItems();
+    return next;
+  }
   function poster(t, size='w342') { return t.poster ? `https://image.tmdb.org/t/p/${size}/${t.poster.replace(/^\//,'')}` : ''; }
   function backdrop(t) { return t.backdrop ? `https://image.tmdb.org/t/p/w1280/${t.backdrop.replace(/^\//,'')}` : ''; }
   function paint(t) { const h=(Number(t.id)*47)%360; return `--shade1:hsl(${h} 39% 23%);--shade2:hsl(${(h+43)%360} 48% 11%)`; }
@@ -248,14 +377,14 @@
     const unsavedConfigUrl = $('#config-url')?.value;
     app.innerHTML = `<div class="layout">
       <aside class="sidebar">
-        <div class="brand"><img class="brand-vhs" src="vhs-logo.png" alt="TV VHS cassette"><div class="brand-words">FRAME<br><em>LOUNGE</em><small>THE VIDEO SHELF</small></div></div>
+        <div class="brand"><img class="brand-logo" src="frame-lounge-logo.png" alt="Frame Lounge TV"></div>
         <div class="sidebar-heading">DISCOVER</div>
         <nav class="nav">
           ${navItem('home','Home','home')}${navItem('movies','Movies','movies')}${navItem('series','Series','series')}
           ${navItem('search','Search','search')}${navItem('mylist','My Shelf','list')}
         </nav>
         <div class="sidebar-bottom">${navItem('settings','Settings','settings')}
-          <div class="source-stamp"><span class="online-dot"></span> ${state.key ? 'TMDB CONNECTED' : 'STARTER LIBRARY'}</div>
+          <div class="source-stamp"><span class="online-dot"></span> ${state.key ? 'TMDB CONNECTED' : state.frameCatalog.items.length+' LISTED TITLES'}</div>
         </div>
       </aside>
       <main class="main"><div class="main-inner">${content}</div></main>
@@ -289,7 +418,7 @@
   // A 3D-inspired VHS rental sleeve. Poster art is the front; the vertical spine carries the title.
   // The same tape art is reused in browse rows and on the full details screen.
   function tapeArt(t, large=false) {
-    const img=poster(t,large?'w500':'w342');
+    const img=poster(t,large?'w342':'w185');
     const key=keyOf(t);
     const reaction=state.likes.includes(key)?'LIKE':state.dislikes.includes(key)?'DISLIKE':'';
     const saved=state.favorites.includes(key);
@@ -309,26 +438,101 @@
       </span>
     </span>`;
   }
-  function card(t, i=0, shelfId='catalog') {
-    // One title can appear on several shelves; focus IDs must be unique.
-    return `<button class="poster-card vhs-card" data-action="detail" data-type="${t.type}" data-id="${t.id}" data-focus="title-${html(shelfId)}-${i}-${keyOf(t)}" aria-label="Open ${html(t.title)} details">
-      ${tapeArt(t)}
-      <span class="poster-caption"><strong>${html(t.title)}</strong><small>${html(t.year)}${t.rating?` · ★ ${t.rating}`:''}</small></span>
+  // FRAME_LOUNGE_COMPACT_PAGES_V2_1 — only focused shelf + two below mount cards.
+  // Offscreen headers remain navigable while their posters are removed from the DOM.
+  const shelfData=new Map(), shelfTitles=new Map();
+  const shelfOrder=[];
+  const SHELF_BATCH=16, FULL_PAGE_SIZE=50;
+  let activeShelfIndex=0, windowedShelves=false, shelfPage=null;
+  function card(t,i=0,shelfId='catalog'){
+    const img=poster(t,'w185');
+    return `<button class="poster-card vhs-card fast-tape" data-action="detail" data-type="${t.type}" data-id="${t.id}"
+      data-focus="title-${html(shelfId)}-${i}-${keyOf(t)}" aria-label="Open ${html(t.title)} details">
+      <span class="fast-case" style="${paint(t)}">
+        <span class="fast-spine" aria-hidden="true">VHS · ${html(t.year||'TV')}</span>
+        <span class="fast-cover">${img?`<img loading="lazy" decoding="async" src="${html(img)}" alt="" onerror="this.style.display='none'">`:''}
+          <span class="fast-cover-letter">${html(t.title.slice(0,1).toUpperCase())}</span></span>
+      </span>
+      <span class="fast-caption"><strong>${html(t.title)}</strong><small>${html(t.year)}${t.runtime?` · ${t.runtime}m`:''}</small></span>
     </button>`;
   }
-  function row(title, items, id='') {
-    const listed=unique((items||[]).filter(isListed),250);
-    if (!listed.length) return '';
-    const shelfId=id||title;
-    return `<section class="catalog-row"><div class="row-heading"><h2>${html(title)}</h2><span class="row-count">${listed.length} titles</span></div>
-      <div class="carousel-row" data-row="${html(shelfId)}">${listed.map((item,i)=>card(item,i,shelfId)).join('')}</div></section>`;
+  function shelfCards(id){
+    const items=shelfData.get(id)||[];
+    return items.slice(0,SHELF_BATCH).map((t,i)=>card(t,i,id)).join('')+
+      (items.length>SHELF_BATCH?moreButton(id,items.length):'');
+  }
+  function moreButton(id,total){
+    return `<button class="vhs-card fast-more" data-action="more-shelf" data-shelf="${html(id)}"
+       data-focus="more-${html(id)}" aria-label="Browse all ${total} titles in this shelf">
+       <span>▤</span><strong>Browse All</strong><small>${total} titles · 50/page</small></button>`;
+  }
+  function row(title,items,id=''){
+    const listed=unique((items||[]).filter(isListed),8000);
+    const shelfId=String(id||title);
+    if(!listed.length){
+      if(title.startsWith('Recently Released'))return `<section class="catalog-row fast-row"><div class="row-heading"><h2>${html(title)}</h2></div><div class="fast-info">Release dates will appear here when FrameXTV/TMDB metadata becomes available.</div></section>`;
+      return '';
+    }
+    shelfData.set(shelfId,listed);shelfTitles.set(shelfId,title);
+    let mount=true,index=-1;
+    if(windowedShelves){
+      index=shelfOrder.length;shelfOrder.push(shelfId);
+      mount=index>=activeShelfIndex && index<=activeShelfIndex+2;
+    }
+    return `<section class="catalog-row fast-row" data-shelf="${html(shelfId)}" data-shelf-index="${index}">
+      <div class="row-heading"><h2>${html(title)}</h2><span class="row-count">${listed.length} tapes</span></div>
+      <div class="carousel-row" data-row="${html(shelfId)}">${mount?shelfCards(shelfId):''}</div>
+    </section>`;
+  }
+  function mountShelfWindow(newIndex){
+    if(!windowedShelves || !shelfOrder.length)return;
+    activeShelfIndex=Math.max(0,Math.min(shelfOrder.length-1,newIndex));
+    const mounted=new Set(shelfOrder.slice(activeShelfIndex,activeShelfIndex+3));
+    for(const id of shelfOrder){
+      const strip=$$('.carousel-row').find(el=>el.dataset.row===id);
+      if(!strip)continue;
+      if(mounted.has(id)){
+        if(!strip.querySelector('.vhs-card'))strip.innerHTML=shelfCards(id);
+      }else if(strip.children.length){
+        // Three active shelves only: the prior shelf is remounted before Up navigation.
+        strip.replaceChildren();
+      }
+    }
+  }
+  function showShelfPage(id,pageNumber=0){
+    const items=shelfData.get(id);
+    if(!items?.length)return;
+    const lastPage=Math.max(0,Math.ceil(items.length/FULL_PAGE_SIZE)-1);
+    shelfPage={id,page:Math.max(0,Math.min(pageNumber,lastPage))};
+    render('page-close');
+  }
+  function shelfPageScreen(){
+    const id=shelfPage?.id,items=shelfData.get(id)||[];
+    const title=shelfTitles.get(id)||'VHS Collection';
+    const total=Math.max(1,Math.ceil(items.length/FULL_PAGE_SIZE));
+    shelfPage.page=Math.max(0,Math.min(total-1,shelfPage.page));
+    const first=shelfPage.page*FULL_PAGE_SIZE;
+    const visible=items.slice(first,first+FULL_PAGE_SIZE);
+    const nav=(bottom=false)=>`<div class="page-toolbar ${bottom?'page-toolbar-bottom':''}">
+      <button class="action-button secondary small" data-action="close-shelf-page" data-focus="${bottom?'page-close-bottom':'page-close'}">← Back to Shelves</button>
+      <button class="action-button secondary small" data-action="prev-shelf-page" data-focus="${bottom?'page-prev-bottom':'page-prev'}" ${shelfPage.page===0?'disabled':''}>◀ Previous</button>
+      <span class="page-indicator">Page ${shelfPage.page+1} of ${total} · ${first+1}–${first+visible.length} / ${items.length}</span>
+      <button class="action-button primary small" data-action="next-shelf-page" data-focus="${bottom?'page-next-bottom':'page-next'}" ${shelfPage.page>=total-1?'disabled':''}>Next ▶</button>
+    </div>`;
+    return `<div class="page-browse">
+      <div class="top-bar"><span>FRAME LOUNGE / ${html(title.toUpperCase())}</span><span class="top-date">50 TAPES PER PAGE</span></div>
+      <div class="page-title"><h1>${html(title)}</h1><p>${items.length} titles in this collection</p></div>
+      ${nav(false)}
+      <div class="page-grid">${visible.map((t,i)=>card(t,first+i,`page-${id}`)).join('')}</div>
+      ${nav(true)}
+    </div>`;
   }
   function navPill(title, subtitle='') { return `<div class="top-pill">${icon('spark',15)} ${html(title)}${subtitle?`<span>${html(subtitle)}</span>`:''}</div>`; }
   function hero(t) {
     const bg=backdrop(t);
     return `<section class="hero" style="${paint(t)};${bg?`--hero-bg:url('${bg}');`:''}">
       <div class="hero-abstract"><div class="halo"></div><div class="planet"></div><div class="orbit"></div></div>
-      <div class="hero-content">${navPill('TONIGHT’S FEATURE',state.key?'Powered by TMDB':'Explore the starter library')}
+      <div class="hero-content">${navPill('TONIGHT’S FEATURE',state.key?'TMDB DISCOVERY':'FrameXTV Collection')}
         <div class="hero-mini">${t.type==='tv'?'TV SERIES':'FEATURE FILM'} <i></i> ${html(t.year)} <i></i> ${html(t.genre)}</div>
         <h1>${html(t.title)}</h1><p class="hero-overview">${html(t.overview||'Find your next great watch.')}</p>
         <div class="hero-buttons"><button class="action-button primary" data-action="hero-play" data-id="${t.id}" data-type="${t.type}" data-focus="hero-play">${icon('play',22)} Open VHS Tape</button>
@@ -336,65 +540,78 @@
       </div><div class="hero-bottom"></div>
     </section>`;
   }
-  function starterRows(route) {
-    const movies=movieSeed, shows=showSeed;
-    if (route==='movies') return [
-      ['Featured Films',movies.slice(0,13)], ['Sci-Fi & Beyond',movies.filter(t=>t.genre==='Sci-Fi'||t.genre==='Adventure')],
-      ['Action & Heroes',movies.filter(t=>t.genre==='Action')], ['Animation For All Ages',movies.filter(t=>t.genre==='Animation')],
-      ['Critically Loved',movies.filter(t=>['Drama','Crime','Thriller'].includes(t.genre))]
-    ];
-    if (route==='series') return [
-      ['Featured Series',shows.slice(0,12)],['Epic Adventures',shows.filter(t=>['Fantasy','Sci-Fi','Action'].includes(t.genre))],
-      ['Drama & Crime',shows.filter(t=>['Drama','Crime','Horror'].includes(t.genre))],['Comedy & Animation',shows.filter(t=>['Comedy','Animation'].includes(t.genre))]
-    ];
-    return [
-      ['Trending Picks', [movies[3],shows[4],movies[23],shows[1],movies[2],shows[2],movies[22],movies[5],shows[0],movies[20]]],
-      ['Movies Worth a Night In', movies.slice(0,14)],['Binge-Worthy Series',shows.slice(0,14)],
-      ['Out of This World', movies.filter(t=>['Sci-Fi','Adventure','Fantasy'].includes(t.genre)).concat(shows.filter(t=>['Sci-Fi','Fantasy'].includes(t.genre)))],
-      ['The Animation Station',movies.filter(t=>t.genre==='Animation').concat(shows.filter(t=>t.genre==='Animation'))]
-    ];
+  function filterChips(label,category,options,selected){
+    return `<div class="filter-row"><div class="filter-label">${html(label)}</div><div class="filter-options">
+       ${options.map(o=>`<button class="filter-chip ${o===selected?'active':''}"
+         data-action="set-filter" data-filter="${category}" data-value="${html(o)}"
+         data-focus="filter-${category}-${html(o)}" aria-pressed="${o===selected}">${html(o)}</button>`).join('')}
+      </div></div>`;
   }
-  // Keep rows manageable for a TV remote, but never silently truncate a catalog.
-  function shelves(label, titles, batch=32) {
-    const result=[];
-    for(let offset=0;offset<titles.length;offset+=batch) {
-      const part=titles.slice(offset,offset+batch);
-      result.push([label+(offset?` · Shelf ${Math.floor(offset/batch)+1}`:''),part]);
-    }
-    return result;
+  function filterPanel(route){
+    const opts=route==='series'?TV_GENRES:GENRES;
+    return `<section class="fast-filters" aria-label="Browse filters">
+      <div class="fast-filter-title"><strong>Find your next ${route==='movies'?'movie':'series'}</strong><span>Genre and runtime require title metadata; unknown durations are excluded from duration filters.</span></div>
+      ${filterChips('Starts with','letter',['All','#',...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'],state.filterLetter)}
+      ${filterChips('Genre','genre',['All',...opts.map(x=>x[0])],state.filterGenre)}
+      ${filterChips(route==='movies'?'Length':'Episode length','runtime',['All','~20','~40','~60','~90','120+'],state.filterRuntime)}
+    </section>`;
   }
-  function getRows(route) {
-    const movies=listedTitles('movie'), series=listedTitles('tv'), remote=state.rows;
-    if(route==='movies')return [
-      ...shelves('Listed on FrameXTV · Movies',movies),
-      ...(remote?[['FrameXTV · Popular Movies',remote.popularMovies],['Sci-Fi Movies',remote.scifi],['Action Movies',remote.action]]:[])
-    ];
-    if(route==='series')return [
-      ...shelves('Listed on FrameXTV · Series',series),
-      ...(remote?[['FrameXTV · Popular Series',remote.popularTV],['Drama Series',remote.dramaTV]]:[])
-    ];
-    return [
-      ['FrameXTV · Featured Movies',movies.slice(0,25)],
-      ['FrameXTV · Series',series.slice(0,25)],
-      ...(remote?[['Trending on TMDB & Listed on FrameXTV',remote.trending],['Popular Movies',remote.popularMovies],['Popular TV',remote.popularTV]]:[]),
-      ...shelves('More Movies on FrameXTV',movies.slice(25)),
-      ...shelves('More Series on FrameXTV',series.slice(25))
-    ];
+  function filteredTitles(type){
+    return listedTitles(type).filter(t=>{
+      const name=t.title.trim().toUpperCase();
+      const initial=(name.match(/[A-Z0-9]/)||['#'])[0];
+      const letter=state.filterLetter;
+      return (letter==='All'||(letter==='#'?/^[0-9]/.test(initial):initial===letter))&&
+        genreMatch(t,state.filterGenre)&&runtimeBucket(t,state.filterRuntime);
+    }).sort((a,b)=>a.title.localeCompare(b.title));
   }
-  function catalogScreen(route) {
+  function getRows(route){
+    const movies=listedTitles('movie'),series=listedTitles('tv');
+    if(route==='movies')return [['All Movies · Filtered',filteredTitles('movie')]];
+    if(route==='series')return [['All Shows · Filtered',filteredTitles('tv')]];
+    const classic=rank(movies.filter(classicKids));
+    const family=rank(movies.filter(popularKids));
+    const recent=movies.filter(modern).sort((a,b)=>
+      (b.releaseDate||'').localeCompare(a.releaseDate||''));
+    const trendingMovies=state.trendingKeys.map(k=>library.get(k)).filter(t=>t?.type==='movie'&&isListed(t));
+    const trendingTV=state.trendingKeys.map(k=>library.get(k)).filter(t=>t?.type==='tv'&&isListed(t));
+    const popularMovies=rank(movies);
+    const rows=[
+      [trendingMovies.length?'Trending Now · Movies':'Popular Tonight · Movies',
+        trendingMovies.length?trendingMovies:popularMovies.slice(0,45)],
+      ['Recently Released · Last Two Years',recent],
+      ['Kids · Popular & Trending',family],
+      ['Kids · Cult Classics',classic],
+      ['Action & Adventure',rank(movies.filter(t=>genreMatch(t,'Action')||genreMatch(t,'Adventure')))],
+      ['Comedy Favorites',rank(movies.filter(t=>genreMatch(t,'Comedy')))],
+      ['Sci-Fi & Fantasy',rank(movies.filter(t=>genreMatch(t,'Sci-Fi')||genreMatch(t,'Fantasy')))],
+      ['Horror & Thrillers',rank(movies.filter(t=>genreMatch(t,'Horror')||genreMatch(t,'Thriller')))],
+      ['Animation & Family Films',rank(movies.filter(t=>genreMatch(t,'Animation')||genreMatch(t,'Family')))],
+      ['Drama & Mystery',rank(movies.filter(t=>genreMatch(t,'Drama')||genreMatch(t,'Mystery')))],
+      ['Romance',rank(movies.filter(t=>genreMatch(t,'Romance')))],
+      ['Trending Series',trendingTV.length?trendingTV:rank(series).slice(0,45)],
+      ['TV Shows to Binge',rank(series).slice(0,60)]
+    ];
+    return rows;
+  }
+  function catalogScreen(route){
+    shelfData.clear();shelfTitles.clear();shelfOrder.length=0;
     const history=historyTitles();
-    const first=route==='series' ? listedTitles('tv')[0] : listedTitles('movie')[0] || listedTitles('tv')[0];
-    const title=route==='movies'?'Movies':route==='series'?'Series':'Home';
     const rows=getRows(route);
-    return `<div class="top-bar"><span>${icon('spark',17)} FRAME LOUNGE / ${title.toUpperCase()}</span><span class="top-date">${state.frameCatalog.items.filter(x=>x.type==='movie').length} MOVIES · ${state.frameCatalog.items.filter(x=>x.type==='tv').length} SERIES</span></div>
-      ${first?hero(first):''}
-      <div class="rows-wrap">
-      ${route==='home' && history.length?row('Continue Watching · Recently Played',history):''}
-      ${route==='home' && state.favorites.length?row('Watch Later · Your VHS Queue',favoriteTitles()):''}
-      ${route==='home' && state.likes.length?row('Tapes You Liked',likedTitles()):''}
-      ${!state.key?`<div class="setup-nudge"><span>${icon('info',22)}</span><div><strong>Load Movie Posters &amp; Details.</strong><p>Add a TMDB API key in Settings for artwork, descriptions and TV episodes. The number of titles comes from our FrameXTV listing feed, not from TMDB.</p></div><button data-action="route" data-route="settings" data-focus="setup-link">Set Up ${icon('chevron',16)}</button></div>`:''}
+    const intro=rows.find(([,items])=>items.length)?.[1]?.[0]||listedTitles('movie')[0]||listedTitles('tv')[0];
+    const title=route==='movies'?'Movies':route==='series'?'Series':'Home';
+    const filtering=route==='movies'||route==='series';
+    return `<div class="top-bar"><span>FRAME LOUNGE / ${title.toUpperCase()}</span><span class="top-date">${state.frameCatalog.items.filter(x=>x.type==='movie').length} MOVIES · ${state.frameCatalog.items.filter(x=>x.type==='tv').length} SERIES</span></div>
+      ${!filtering&&intro?hero(intro):''}
+      ${filtering?filterPanel(route):''}
+      <div class="rows-wrap fast-rows">
+      ${route==='home'&&history.length?row('Continue Watching',history,'home-history'):''}
+      ${route==='home'&&state.favorites.length?row('Watch Later',favoriteTitles(),'home-later'):''}
+      ${route==='home'&&state.likes.length?row('Your Favorites',likedTitles(),'home-liked'):''}
+      ${!state.key?`<div class="fast-nudge">Connect your TMDB key in Settings for up-to-date trending rankings, release dates, detailed genre filters and posters. Browsing works without a key.</div>`:''}
       ${rows.map(([name,items],idx)=>row(name,items,`${route}-${idx}`)).join('')}
-      <div class="footer-note">These shelves contain only titles linked in FrameXTV's public listings. Link present = presumed playable; no playback verification is performed. TMDB only adds poster and description information. Streams may still fail.</div>
+      ${filtering&&!rows[0][1].length?`<div class="fast-empty">No matching titles with known metadata. Try All genres or All lengths.</div>`:''}
+      <div class="footer-note">Only FrameXTV-listed titles appear. Genre, release dates, and runtimes come from published metadata or TMDB. Remote: Up/Down switches shelves; Left/Right selects tapes.</div>
       </div>`;
   }
   function historyTitles() { return state.history.map(h => library.get(h.key)||h.item).filter(isListed).slice(0,14); }
@@ -408,7 +625,7 @@
       ${any?`<div class="rows-wrap">${row('Watch Later',later)}${row('Liked Tapes',liked)}${row('Disliked Tapes',disliked)}${state.history.length?row('Recently Played',historyTitles()):''}</div>`:`<div class="empty-state">${icon('list',48)}<h2>Nothing on your shelf yet</h2><p>Open a VHS tape and select Like, Dislike, or Watch Later to organize your collection.</p><button class="action-button primary" data-action="route" data-route="home" data-focus="empty-home">Browse VHS Tapes</button></div>`}`;
   }
   function searchScreen() {
-    return `<div class="top-bar"><span>FRAME LOUNGE / SEARCH</span></div>${header('FIND SOMETHING GOOD','Search the Library',state.key?'Search movies and TV series from TMDB.':'Search starter titles. Connect TMDB in Settings for thousands more.')}
+    return `<div class="top-bar"><span>FRAME LOUNGE / SEARCH</span></div>${header('FIND SOMETHING GOOD','Search the Library',state.key?'Search movies and TV series from TMDB.':'Search all titles currently listed by FrameXTV.')}
       <div class="search-box">${icon('search',26)}<input id="search-input" data-focus="search-input" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Movie or TV series title…" value="${html(state.search)}"><span>OK / SELECT</span></div>
       <div id="search-result-area">${searchResultsHtml()}</div>`;
   }
@@ -419,7 +636,7 @@
     const local=listedTitles().filter(t=>t.title.toLowerCase().includes(terms));
     results=unique([...results,...local].filter(isListed),5000);
     if (results.length) return shelves(`Search results for “${state.search}”`,results).map(([label,items],idx)=>row(label,items,`search-${idx}`)).join('');
-    return `<div class="empty-state"><h2>No matching titles yet</h2><p>${state.key?'Try another search term.':'Try another search term, or add a TMDB key to unlock the full catalog.'}</p></div>`;
+    return `<div class="empty-state"><h2>No matching titles yet</h2><p>${state.key?'Try another search term.':'Try another search term.'}</p></div>`;
   }
   function settingsScreen() {
     return `<div class="top-bar"><span>FRAME LOUNGE / SETTINGS</span></div>${header('MAKE IT YOURS','Settings','One-time setup. Your preferences are saved on this device.')}
@@ -602,7 +819,9 @@
   }
   function render(focusKey) {
     let body;
+    windowedShelves=!shelfPage&&!state.detail&&['home','movies','series'].includes(state.route);
     if (state.detail) body=detailScreen(state.detail);
+    else if (shelfPage) body=shelfPageScreen();
     else if (state.route==='mylist') body=myListScreen();
     else if (state.route==='search') body=searchScreen();
     else if (state.route==='settings') body=settingsScreen();
@@ -611,7 +830,8 @@
   }
   function changeRoute(r) {
     if(!['home','movies','series','search','mylist','settings'].includes(r))return;
-    state.route=r;state.detail=null;state.playing=null;state.lastFocus=null;render();
+    state.route=r;state.detail=null;state.playing=null;state.lastFocus=null;
+    shelfPage=null;activeShelfIndex=0;render();
     if(r==='search') focusByKey('search-input');
   }
   async function openDetail(t) {
@@ -713,11 +933,10 @@
       const test=await tmdb('configuration');
       if (!test?.images) throw new Error('TMDB did not return valid configuration');
       const queries={
-        trending:'trending/all/week?language=en-US', popularMovies:'movie/popular?language=en-US',
-        popularTV:'tv/popular?language=en-US', topMovies:'movie/top_rated?language=en-US',
-        topTV:'tv/top_rated?language=en-US', scifi:'discover/movie?with_genres=878&sort_by=popularity.desc',
-        action:'discover/movie?with_genres=28&sort_by=popularity.desc',animation:'discover/movie?with_genres=16&sort_by=popularity.desc',
-        dramaTV:'discover/tv?with_genres=18&sort_by=popularity.desc'
+        trending:'trending/all/week?language=en-US',
+        nowPlaying:'movie/now_playing?language=en-US&region=US',
+        popularMovies:'movie/popular?language=en-US',
+        popularTV:'tv/popular?language=en-US'
       };
       const entries=await Promise.all(Object.entries(queries).map(async ([name,path])=>{
         try { const d=await tmdb(path);const type=name==='trending'?null:name.toLowerCase().includes('tv')?'tv':'movie';
@@ -725,9 +944,12 @@
         catch(_) {return [name,[]];}
       }));
       state.rows=Object.fromEntries(entries);
-      showMessage('TMDB connected. Artwork for FrameXTV-listed titles is loading.');
+      const trend=state.rows.trending||[];
+      if(trend.length){state.trendingKeys=trend.map(keyOf);saveStore('trendingKeysV2',state.trendingKeys);}
+      showMessage('TMDB connected. Artwork and categories are loading progressively.');
     }catch(err){state.rows=null;showMessage('TMDB connection failed. Check your API key and network.');}
-    finally{state.loading=false;if(!state.detail&&!state.playing)render();if(state.key)enrichListedPosters();}
+    finally{state.loading=false;if(!state.detail&&!state.playing)render();
+      if(state.key)setTimeout(enrichListedPosters,1600);}
   }
   async function loadEpisodes(season) {
     if(!state.detail||state.detail.type!=='tv'||!state.key)return;
@@ -771,6 +993,7 @@
   // Used directly by native Fire OS key dispatch: guarantees the D-pad works
   // even if the third-party iframe attempts to capture focus.
   window.fireTvRemoteKey = key => {
+    lastRemoteActivity=Date.now();
     if(state.playing)return playerRemoteKey(key);
     const active=document.activeElement;
     if(key==='Enter'){
@@ -798,10 +1021,18 @@
     }
     return false;
   };
+  // Called only by the native Fire Stick UI. In cursor mode, keep the app's
+  // control strip hidden so user taps can reach embedded player prompts.
+  window.fireTvCursorModeChanged = enabled => {
+    if (!state.playing) return;
+    clearTimeout(playerHideTimer);
+    hidePlayerControls();
+  };
   window.fireTvAppPause = () => { if(state.playing)playerCmd('pause'); };
   window.fireTvBack = () => {
     if(state.playing){closePlayer();return true;}
     if(state.detail){state.detail=null;state.episodes=null;render(state.lastFocus);return true;}
+    if(shelfPage){const id=shelfPage.id;shelfPage=null;render('more-'+id);return true;}
     if(state.route!=='home'){changeRoute('home');return true;}
     return false;
   };
@@ -819,6 +1050,20 @@
     const btn=ev.target.closest('[data-action]');if(!btn)return;
     const action=btn.dataset.action;
     if(action==='route'){changeRoute(btn.dataset.route);return;}
+    if(action==='more-shelf'){showShelfPage(btn.dataset.shelf);return;}
+    if(action==='close-shelf-page'){
+      const id=shelfPage?.id;shelfPage=null;render(id?'more-'+id:undefined);return;
+    }
+    if(action==='prev-shelf-page'||action==='next-shelf-page'){
+      showShelfPage(shelfPage?.id,(shelfPage?.page||0)+(action==='next-shelf-page'?1:-1));return;
+    }
+    if(action==='set-filter'){
+      const key=btn.dataset.filter;
+      if(key==='letter')state.filterLetter=btn.dataset.value;
+      if(key==='genre')state.filterGenre=btn.dataset.value;
+      if(key==='runtime')state.filterRuntime=btn.dataset.value;
+      render(btn.dataset.focus);return;
+    }
     if(action==='detail' || action==='hero-play'){
       const t=library.get(`${btn.dataset.type}:${btn.dataset.id}`);if(t){await openDetail(t);}return;
     }
@@ -852,6 +1097,7 @@
     if(state.search.trim())searchTimer=setTimeout(()=>searchRemote(state.search,serial),350);
   });
   document.addEventListener('keydown',ev=>{
+    lastRemoteActivity=Date.now();
     if(ev.key==='Escape'||ev.key==='BrowserBack'){ev.preventDefault();window.fireTvBack();return;}
     if(state.playing && ['ArrowDown','ArrowUp','ArrowLeft','ArrowRight','Enter',' '].includes(ev.key)){
       ev.preventDefault();ev.stopPropagation();playerRemoteKey(ev.key===' '?'Enter':ev.key);return;
@@ -895,7 +1141,8 @@
   function spatialNavigate(direction){
     const current=document.activeElement;
     const inRow=current?.closest?.('.carousel-row');
-    const rows=$$('.carousel-row').filter(r=>r.querySelector('.vhs-card'));
+    const rows=windowedShelves ? $$('.carousel-row[data-row]') :
+      $$('.carousel-row').filter(r=>r.querySelector('.vhs-card'));
     if(inRow){
       const cards=$$('.vhs-card',inRow);
       const idx=Math.max(0,cards.indexOf(current));
@@ -912,6 +1159,7 @@
       if(direction==='ArrowUp'||direction==='ArrowDown'){
         const nextRow=rows[shelfIndex+(direction==='ArrowDown'?1:-1)];
         if(nextRow){
+          if(windowedShelves)mountShelfWindow(shelfIndex+(direction==='ArrowDown'?1:-1));
           const nextCards=$$('.vhs-card',nextRow);
           moveFocusTo(nextCards[Math.min(idx,nextCards.length-1)]);
         }else if(direction==='ArrowUp'){
