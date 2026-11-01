@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "2026-10-31",
+  "version": "2026-11-01",
   "source": "FrameXTV public browse links collected over multiple passes; video not tested",
   "items": [
     {
@@ -197,6 +197,11 @@
       "type": "movie",
       "id": 332562,
       "title": "A Star Is Born"
+    },
+    {
+      "type": "movie",
+      "id": 1813355,
+      "title": "A Story of Derry"
     },
     {
       "type": "movie",
@@ -495,6 +500,11 @@
     },
     {
       "type": "movie",
+      "id": 1118031,
+      "title": "Apocalypse Z: The Beginning of the End"
+    },
+    {
+      "type": "movie",
       "id": 568,
       "title": "Apollo 13"
     },
@@ -507,6 +517,11 @@
       "type": "movie",
       "id": 766,
       "title": "Army of Darkness"
+    },
+    {
+      "type": "movie",
+      "id": 471676,
+      "title": "Arriba Michoacán"
     },
     {
       "type": "movie",
@@ -910,6 +925,11 @@
     },
     {
       "type": "movie",
+      "id": 1196668,
+      "title": "Blue Sky Jo"
+    },
+    {
+      "type": "movie",
       "id": 6341,
       "title": "Blue Thunder"
     },
@@ -1002,6 +1022,11 @@
       "type": "movie",
       "id": 1623,
       "title": "Brubaker"
+    },
+    {
+      "type": "movie",
+      "id": 310,
+      "title": "Bruce Almighty"
     },
     {
       "type": "movie",
@@ -1505,6 +1530,11 @@
     },
     {
       "type": "movie",
+      "id": 10766,
+      "title": "Damien - Omen II"
+    },
+    {
+      "type": "movie",
       "id": 25763,
       "title": "Damnation Alley"
     },
@@ -1545,6 +1575,11 @@
     },
     {
       "type": "movie",
+      "id": 1165366,
+      "title": "De Gaulle: Résistance"
+    },
+    {
+      "type": "movie",
       "id": 207,
       "title": "Dead Poets Society"
     },
@@ -1577,6 +1612,11 @@
       "type": "movie",
       "id": 1400288,
       "title": "Deaf President Now!"
+    },
+    {
+      "type": "movie",
+      "id": 1106587,
+      "title": "Dear Brutus"
     },
     {
       "type": "movie",
@@ -1770,6 +1810,11 @@
     },
     {
       "type": "movie",
+      "id": 39105,
+      "title": "Dragon Ball Z: Bojack Unbound"
+    },
+    {
+      "type": "movie",
       "id": 24752,
       "title": "Dragon Ball Z: Cooler's Revenge"
     },
@@ -1842,6 +1887,11 @@
       "type": "movie",
       "id": 374720,
       "title": "Dunkirk"
+    },
+    {
+      "type": "movie",
+      "id": 7288,
+      "title": "Duplex"
     },
     {
       "type": "movie",
@@ -2005,6 +2055,11 @@
     },
     {
       "type": "movie",
+      "id": 425370,
+      "title": "Exit 7"
+    },
+    {
+      "type": "movie",
       "id": 11586,
       "title": "Exorcist II: The Heretic"
     },
@@ -2087,6 +2142,11 @@
       "type": "movie",
       "id": 10315,
       "title": "Fantastic Mr. Fox"
+    },
+    {
+      "type": "movie",
+      "id": 1131553,
+      "title": "Fantasy Island"
     },
     {
       "type": "movie",
@@ -2252,6 +2312,11 @@
       "type": "movie",
       "id": 10330,
       "title": "Freaky Friday"
+    },
+    {
+      "type": "movie",
+      "id": 512365,
+      "title": "Freddy"
     },
     {
       "type": "movie",
@@ -2505,6 +2570,11 @@
     },
     {
       "type": "movie",
+      "id": 823464,
+      "title": "Godzilla x Kong: The New Empire"
+    },
+    {
+      "type": "movie",
       "id": 373571,
       "title": "Godzilla: King of the Monsters"
     },
@@ -2635,6 +2705,11 @@
     },
     {
       "type": "movie",
+      "id": 616820,
+      "title": "Halloween Ends"
+    },
+    {
+      "type": "movie",
       "id": 11281,
       "title": "Halloween II"
     },
@@ -2642,6 +2717,11 @@
       "type": "movie",
       "id": 10676,
       "title": "Halloween III: Season of the Witch"
+    },
+    {
+      "type": "movie",
+      "id": 1480856,
+      "title": "Hanging by a Wire"
     },
     {
       "type": "movie",
@@ -3140,6 +3220,11 @@
     },
     {
       "type": "movie",
+      "id": 474350,
+      "title": "It Chapter Two"
+    },
+    {
+      "type": "movie",
       "id": 270303,
       "title": "It Follows"
     },
@@ -3152,6 +3237,11 @@
       "type": "movie",
       "id": 1620711,
       "title": "Its Presence Between Us"
+    },
+    {
+      "type": "movie",
+      "id": 11834,
+      "title": "Jabberwocky"
     },
     {
       "type": "movie",
@@ -3182,6 +3272,11 @@
       "type": "movie",
       "id": 1234139,
       "title": "Jailer 2"
+    },
+    {
+      "type": "movie",
+      "id": 10285,
+      "title": "Jason Goes to Hell: The Final Friday"
     },
     {
       "type": "movie",
@@ -3445,6 +3540,11 @@
     },
     {
       "type": "movie",
+      "id": 81671,
+      "title": "L'immoralità"
+    },
+    {
+      "type": "movie",
       "id": 2118,
       "title": "L.A. Confidential"
     },
@@ -3472,6 +3572,11 @@
       "type": "movie",
       "id": 13597,
       "title": "Labyrinth"
+    },
+    {
+      "type": "movie",
+      "id": 9593,
+      "title": "Last Action Hero"
     },
     {
       "type": "movie",
@@ -3572,6 +3677,11 @@
       "type": "movie",
       "id": 273214,
       "title": "Ligabue"
+    },
+    {
+      "type": "movie",
+      "id": 325237,
+      "title": "Light"
     },
     {
       "type": "movie",
@@ -4047,6 +4157,11 @@
       "type": "movie",
       "id": 460465,
       "title": "Mortal Kombat"
+    },
+    {
+      "type": "movie",
+      "id": 415630,
+      "title": "Mortal Sin"
     },
     {
       "type": "movie",
@@ -4650,6 +4765,11 @@
     },
     {
       "type": "movie",
+      "id": 10587,
+      "title": "Police Academy 4: Citizens on Patrol"
+    },
+    {
+      "type": "movie",
       "id": 9056,
       "title": "Police Story"
     },
@@ -4955,6 +5075,11 @@
     },
     {
       "type": "movie",
+      "id": 415366,
+      "title": "Ringo"
+    },
+    {
+      "type": "movie",
       "id": 1207162,
       "title": "Rise of the Conqueror"
     },
@@ -4972,6 +5097,11 @@
       "type": "movie",
       "id": 9346,
       "title": "Risky Business"
+    },
+    {
+      "type": "movie",
+      "id": 8005,
+      "title": "Robin Hood: Men in Tights"
     },
     {
       "type": "movie",
@@ -5362,6 +5492,11 @@
       "type": "movie",
       "id": 2668,
       "title": "Sleepy Hollow"
+    },
+    {
+      "type": "movie",
+      "id": 867,
+      "title": "Sliver"
     },
     {
       "type": "movie",
@@ -5835,6 +5970,11 @@
     },
     {
       "type": "movie",
+      "id": 1034541,
+      "title": "Terrifier 3"
+    },
+    {
+      "type": "movie",
       "id": 1574411,
       "title": "Terry McMillan Presents: Preach, Pray, Love"
     },
@@ -5957,6 +6097,11 @@
       "type": "movie",
       "id": 318846,
       "title": "The Big Short"
+    },
+    {
+      "type": "movie",
+      "id": 1789549,
+      "title": "The Birthday​ Gift​"
     },
     {
       "type": "movie",
@@ -6500,6 +6645,11 @@
     },
     {
       "type": "movie",
+      "id": 618162,
+      "title": "The Harder They Fall"
+    },
+    {
+      "type": "movie",
       "id": 273248,
       "title": "The Hateful Eight"
     },
@@ -7030,6 +7180,11 @@
     },
     {
       "type": "movie",
+      "id": 9944,
+      "title": "The Pelican Brief"
+    },
+    {
+      "type": "movie",
       "id": 2133,
       "title": "The Perfect Storm"
     },
@@ -7300,6 +7455,11 @@
     },
     {
       "type": "movie",
+      "id": 1213,
+      "title": "The Talented Mr. Ripley"
+    },
+    {
+      "type": "movie",
       "id": 10986,
       "title": "The Taming of the Scoundrel"
     },
@@ -7322,6 +7482,11 @@
       "type": "movie",
       "id": 1091,
       "title": "The Thing"
+    },
+    {
+      "type": "movie",
+      "id": 913,
+      "title": "The Thomas Crown Affair"
     },
     {
       "type": "movie",
@@ -7437,6 +7602,11 @@
       "type": "movie",
       "id": 106646,
       "title": "The Wolf of Wall Street"
+    },
+    {
+      "type": "movie",
+      "id": 36643,
+      "title": "The World Is Not Enough"
     },
     {
       "type": "movie",
@@ -8210,6 +8380,11 @@
     },
     {
       "type": "tv",
+      "id": 66584,
+      "title": "99.9 Criminal Lawyer"
+    },
+    {
+      "type": "tv",
       "id": 61025,
       "title": "@midnight with Chris Hardwick"
     },
@@ -8332,6 +8507,11 @@
       "type": "tv",
       "id": 494,
       "title": "Alice"
+    },
+    {
+      "type": "tv",
+      "id": 110316,
+      "title": "Alice in Borderland"
     },
     {
       "type": "tv",
@@ -8485,6 +8665,11 @@
     },
     {
       "type": "tv",
+      "id": 213568,
+      "title": "Anjo Meu"
+    },
+    {
+      "type": "tv",
       "id": 16047,
       "title": "Anne of Green Gables"
     },
@@ -8497,6 +8682,16 @@
       "type": "tv",
       "id": 2042,
       "title": "Antiques Roadshow"
+    },
+    {
+      "type": "tv",
+      "id": 116479,
+      "title": "Anupamaa"
+    },
+    {
+      "type": "tv",
+      "id": 258680,
+      "title": "Anyway, I'm Falling in Love with You."
     },
     {
       "type": "tv",
@@ -8620,6 +8815,11 @@
     },
     {
       "type": "tv",
+      "id": 53270,
+      "title": "Barwy szczęścia"
+    },
+    {
+      "type": "tv",
       "id": 215803,
       "title": "Batang Quiapo"
     },
@@ -8652,6 +8852,11 @@
       "type": "tv",
       "id": 13943,
       "title": "Beavis and Butt-Head"
+    },
+    {
+      "type": "tv",
+      "id": 48463,
+      "title": "Beckmann"
     },
     {
       "type": "tv",
@@ -8707,6 +8912,11 @@
       "type": "tv",
       "id": 67667,
       "title": "Beyblade Burst"
+    },
+    {
+      "type": "tv",
+      "id": 226688,
+      "title": "Beyblade X"
     },
     {
       "type": "tv",
@@ -8940,6 +9150,11 @@
     },
     {
       "type": "tv",
+      "id": 236445,
+      "title": "Campus Beats"
+    },
+    {
+      "type": "tv",
       "id": 1533,
       "title": "Caméra Café"
     },
@@ -9032,6 +9247,11 @@
       "type": "tv",
       "id": 141,
       "title": "Cheers"
+    },
+    {
+      "type": "tv",
+      "id": 244546,
+      "title": "Chega Mais"
     },
     {
       "type": "tv",
@@ -9380,6 +9600,11 @@
     },
     {
       "type": "tv",
+      "id": 225797,
+      "title": "DayDay."
+    },
+    {
+      "type": "tv",
       "id": 62643,
       "title": "DC's Legends of Tomorrow"
     },
@@ -9542,6 +9767,11 @@
       "type": "tv",
       "id": 1931,
       "title": "Disney's Adventures of the Gummi Bears"
+    },
+    {
+      "type": "tv",
+      "id": 255055,
+      "title": "Doc"
     },
     {
       "type": "tv",
@@ -9920,6 +10150,11 @@
     },
     {
       "type": "tv",
+      "id": 2822,
+      "title": "Felicity"
+    },
+    {
+      "type": "tv",
       "id": 124201,
       "title": "Festa é Festa"
     },
@@ -10065,6 +10300,11 @@
     },
     {
       "type": "tv",
+      "id": 20746,
+      "title": "G-Men '75"
+    },
+    {
+      "type": "tv",
       "id": 29200,
       "title": "G.I. Joe: A Real American Hero"
     },
@@ -10197,6 +10437,11 @@
       "type": "tv",
       "id": 46831,
       "title": "Government Job"
+    },
+    {
+      "type": "tv",
+      "id": 98281,
+      "title": "Grands Reportages"
     },
     {
       "type": "tv",
@@ -10480,6 +10725,11 @@
     },
     {
       "type": "tv",
+      "id": 29173,
+      "title": "House Hunters International"
+    },
+    {
+      "type": "tv",
       "id": 1425,
       "title": "House of Cards"
     },
@@ -10667,6 +10917,11 @@
       "type": "tv",
       "id": 61418,
       "title": "Jane the Virgin"
+    },
+    {
+      "type": "tv",
+      "id": 125525,
+      "title": "Japanese Folklore Tales"
     },
     {
       "type": "tv",
@@ -10920,6 +11175,11 @@
     },
     {
       "type": "tv",
+      "id": 67027,
+      "title": "Last Chance U"
+    },
+    {
+      "type": "tv",
       "id": 60694,
       "title": "Last Week Tonight with John Oliver"
     },
@@ -11047,6 +11307,11 @@
       "type": "tv",
       "id": 1781,
       "title": "Little House on the Prairie"
+    },
+    {
+      "type": "tv",
+      "id": 42915,
+      "title": "Little Missy"
     },
     {
       "type": "tv",
@@ -11530,6 +11795,11 @@
     },
     {
       "type": "tv",
+      "id": 199001,
+      "title": "My Life with the Walter Boys"
+    },
+    {
+      "type": "tv",
       "id": 72896,
       "title": "My Little Old Boy"
     },
@@ -11850,6 +12120,11 @@
     },
     {
       "type": "tv",
+      "id": 125364,
+      "title": "Palang Tod"
+    },
+    {
+      "type": "tv",
       "id": 283856,
       "title": "Papai Coração"
     },
@@ -11947,6 +12222,11 @@
       "type": "tv",
       "id": 158620,
       "title": "Plumas & Paetês"
+    },
+    {
+      "type": "tv",
+      "id": 225171,
+      "title": "Pluribus"
     },
     {
       "type": "tv",
@@ -12057,6 +12337,11 @@
       "type": "tv",
       "id": 4018,
       "title": "Quantum Leap"
+    },
+    {
+      "type": "tv",
+      "id": 283245,
+      "title": "Queen of Myself"
     },
     {
       "type": "tv",
@@ -12330,6 +12615,11 @@
     },
     {
       "type": "tv",
+      "id": 13840,
+      "title": "Schloss Einstein"
+    },
+    {
+      "type": "tv",
       "id": 1072,
       "title": "Scooby's All-Stars"
     },
@@ -12455,6 +12745,11 @@
     },
     {
       "type": "tv",
+      "id": 278577,
+      "title": "Shine on Me"
+    },
+    {
+      "type": "tv",
       "id": 130013,
       "title": "Show! Champion"
     },
@@ -12497,6 +12792,11 @@
       "type": "tv",
       "id": 2102,
       "title": "Simon & Simon"
+    },
+    {
+      "type": "tv",
+      "id": 224455,
+      "title": "Simple Truths"
     },
     {
       "type": "tv",
@@ -12635,6 +12935,11 @@
     },
     {
       "type": "tv",
+      "id": 240459,
+      "title": "Spartacus: House of Ashur"
+    },
+    {
+      "type": "tv",
       "id": 888,
       "title": "Spider-Man"
     },
@@ -12687,6 +12992,11 @@
       "type": "tv",
       "id": 314,
       "title": "Star Trek: Enterprise"
+    },
+    {
+      "type": "tv",
+      "id": 85949,
+      "title": "Star Trek: Picard"
     },
     {
       "type": "tv",
@@ -13240,6 +13550,11 @@
     },
     {
       "type": "tv",
+      "id": 69158,
+      "title": "The Good Fight"
+    },
+    {
+      "type": "tv",
       "id": 1435,
       "title": "The Good Wife"
     },
@@ -13397,6 +13712,11 @@
       "type": "tv",
       "id": 44857,
       "title": "The Mindy Project"
+    },
+    {
+      "type": "tv",
+      "id": 97617,
+      "title": "The Misfit of Demon King Academy"
     },
     {
       "type": "tv",
@@ -13730,6 +14050,11 @@
     },
     {
       "type": "tv",
+      "id": 255570,
+      "title": "This City Is Ours"
+    },
+    {
+      "type": "tv",
       "id": 70,
       "title": "This Hour Has 22 Minutes"
     },
@@ -13807,6 +14132,11 @@
       "type": "tv",
       "id": 72879,
       "title": "Tomorrow Is Ours"
+    },
+    {
+      "type": "tv",
+      "id": 41822,
+      "title": "Top Chef"
     },
     {
       "type": "tv",
@@ -13895,6 +14225,11 @@
     },
     {
       "type": "tv",
+      "id": 131651,
+      "title": "Turning Point: 9/11 and the War on Terror"
+    },
+    {
+      "type": "tv",
       "id": 1920,
       "title": "Twin Peaks"
     },
@@ -13907,6 +14242,11 @@
       "type": "tv",
       "id": 16484,
       "title": "Télématin"
+    },
+    {
+      "type": "tv",
+      "id": 46252,
+      "title": "UFO Robot Grendizer"
     },
     {
       "type": "tv",
