@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "2026-11-01",
+  "version": "2026-11-02",
   "source": "FrameXTV public browse links collected over multiple passes; video not tested",
   "items": [
     {
@@ -77,6 +77,11 @@
       "type": "movie",
       "id": 1824,
       "title": "50 First Dates"
+    },
+    {
+      "type": "movie",
+      "id": 314153,
+      "title": "7 calles"
     },
     {
       "type": "movie",
@@ -212,6 +217,11 @@
       "type": "movie",
       "id": 1645,
       "title": "A Time to Kill"
+    },
+    {
+      "type": "movie",
+      "id": 1664264,
+      "title": "A Very Arctic Christmas"
     },
     {
       "type": "movie",
@@ -450,6 +460,11 @@
     },
     {
       "type": "movie",
+      "id": 9506,
+      "title": "Anger Management"
+    },
+    {
+      "type": "movie",
       "id": 8469,
       "title": "Animal House"
     },
@@ -657,6 +672,11 @@
       "type": "movie",
       "id": 8961,
       "title": "Bad Boys II"
+    },
+    {
+      "type": "movie",
+      "id": 375846,
+      "title": "Bad Sister"
     },
     {
       "type": "movie",
@@ -895,6 +915,11 @@
     },
     {
       "type": "movie",
+      "id": 918,
+      "title": "Blind Date"
+    },
+    {
+      "type": "movie",
       "id": 19124,
       "title": "Blind Fury"
     },
@@ -940,6 +965,11 @@
     },
     {
       "type": "movie",
+      "id": 11507,
+      "title": "Body Double"
+    },
+    {
+      "type": "movie",
       "id": 14412,
       "title": "Body Heat"
     },
@@ -947,6 +977,11 @@
       "type": "movie",
       "id": 424694,
       "title": "Bohemian Rhapsody"
+    },
+    {
+      "type": "movie",
+      "id": 13053,
+      "title": "Bolt"
     },
     {
       "type": "movie",
@@ -1810,6 +1845,11 @@
     },
     {
       "type": "movie",
+      "id": 1246049,
+      "title": "Dracula"
+    },
+    {
+      "type": "movie",
       "id": 39105,
       "title": "Dragon Ball Z: Bojack Unbound"
     },
@@ -1897,6 +1937,11 @@
       "type": "movie",
       "id": 601,
       "title": "E.T. the Extra-Terrestrial"
+    },
+    {
+      "type": "movie",
+      "id": 13027,
+      "title": "Eagle Eye"
     },
     {
       "type": "movie",
@@ -2150,6 +2195,11 @@
     },
     {
       "type": "movie",
+      "id": 11259,
+      "title": "Far and Away"
+    },
+    {
+      "type": "movie",
       "id": 10997,
       "title": "Farewell My Concubine"
     },
@@ -2202,6 +2252,11 @@
       "type": "movie",
       "id": 2323,
       "title": "Field of Dreams"
+    },
+    {
+      "type": "movie",
+      "id": 944671,
+      "title": "Fifth Movement"
     },
     {
       "type": "movie",
@@ -2277,6 +2332,11 @@
       "type": "movie",
       "id": 359724,
       "title": "Ford v Ferrari"
+    },
+    {
+      "type": "movie",
+      "id": 9870,
+      "title": "Forgetting Sarah Marshall"
     },
     {
       "type": "movie",
@@ -2705,6 +2765,11 @@
     },
     {
       "type": "movie",
+      "id": 11361,
+      "title": "Halloween 5: The Revenge of Michael Myers"
+    },
+    {
+      "type": "movie",
       "id": 616820,
       "title": "Halloween Ends"
     },
@@ -2717,6 +2782,11 @@
       "type": "movie",
       "id": 10676,
       "title": "Halloween III: Season of the Witch"
+    },
+    {
+      "type": "movie",
+      "id": 27850,
+      "title": "Halloweentown"
     },
     {
       "type": "movie",
@@ -2812,6 +2882,11 @@
       "type": "movie",
       "id": 338766,
       "title": "Hell or High Water"
+    },
+    {
+      "type": "movie",
+      "id": 92694,
+      "title": "Hell's Trap"
     },
     {
       "type": "movie",
@@ -2912,6 +2987,11 @@
       "type": "movie",
       "id": 1105905,
       "title": "Horse Latitudes"
+    },
+    {
+      "type": "movie",
+      "id": 12222,
+      "title": "Horton Hears a Who!"
     },
     {
       "type": "movie",
@@ -3197,6 +3277,11 @@
       "type": "movie",
       "id": 11850,
       "title": "Invasion of the Body Snatchers"
+    },
+    {
+      "type": "movie",
+      "id": 360605,
+      "title": "Invisible Sister"
     },
     {
       "type": "movie",
@@ -3765,6 +3850,11 @@
     },
     {
       "type": "movie",
+      "id": 153,
+      "title": "Lost in Translation"
+    },
+    {
+      "type": "movie",
       "id": 1014890,
       "title": "Louis Armstrong's Black & Blues"
     },
@@ -3887,6 +3977,11 @@
       "type": "movie",
       "id": 10518,
       "title": "Marathon Man"
+    },
+    {
+      "type": "movie",
+      "id": 9539,
+      "title": "Martyrs"
     },
     {
       "type": "movie",
@@ -4027,6 +4122,16 @@
       "type": "movie",
       "id": 11327,
       "title": "Midnight Express"
+    },
+    {
+      "type": "movie",
+      "id": 137051,
+      "title": "Midnight Matinee"
+    },
+    {
+      "type": "movie",
+      "id": 53064,
+      "title": "Midori"
     },
     {
       "type": "movie",
@@ -4302,6 +4407,11 @@
       "type": "movie",
       "id": 10774,
       "title": "Network"
+    },
+    {
+      "type": "movie",
+      "id": 1629051,
+      "title": "Never After Dark"
     },
     {
       "type": "movie",
@@ -4595,6 +4705,11 @@
     },
     {
       "type": "movie",
+      "id": 684795,
+      "title": "Paris-Brest"
+    },
+    {
+      "type": "movie",
       "id": 10312,
       "title": "Patch Adams"
     },
@@ -4612,6 +4727,11 @@
       "type": "movie",
       "id": 10647,
       "title": "Pay It Forward"
+    },
+    {
+      "type": "movie",
+      "id": 676,
+      "title": "Pearl Harbor"
     },
     {
       "type": "movie",
@@ -6137,6 +6257,11 @@
       "type": "movie",
       "id": 525,
       "title": "The Blues Brothers"
+    },
+    {
+      "type": "movie",
+      "id": 619,
+      "title": "The Bodyguard"
     },
     {
       "type": "movie",
@@ -8160,6 +8285,11 @@
     },
     {
       "type": "movie",
+      "id": 891621,
+      "title": "Wild Horse Nine"
+    },
+    {
+      "type": "movie",
       "id": 5203,
       "title": "Wild Orchid"
     },
@@ -10010,6 +10140,11 @@
     },
     {
       "type": "tv",
+      "id": 83891,
+      "title": "Estúpido Cupido"
+    },
+    {
+      "type": "tv",
       "id": 85552,
       "title": "Euphoria"
     },
@@ -11160,6 +11295,11 @@
     },
     {
       "type": "tv",
+      "id": 242099,
+      "title": "Lady of Tides"
+    },
+    {
+      "type": "tv",
       "id": 157741,
       "title": "Landman"
     },
@@ -11570,6 +11710,11 @@
     },
     {
       "type": "tv",
+      "id": 43395,
+      "title": "Mañana Será Otro Día"
+    },
+    {
+      "type": "tv",
       "id": 134864,
       "title": "MBC Bests Theater"
     },
@@ -11957,6 +12102,11 @@
       "type": "tv",
       "id": 38693,
       "title": "Ninjago: Masters of Spinjitzu"
+    },
+    {
+      "type": "tv",
+      "id": 339006,
+      "title": "Ninnu Kori"
     },
     {
       "type": "tv",
@@ -12417,6 +12567,11 @@
       "type": "tv",
       "id": 45857,
       "title": "REBORN!"
+    },
+    {
+      "type": "tv",
+      "id": 1546,
+      "title": "Recess"
     },
     {
       "type": "tv",
@@ -13145,6 +13300,11 @@
     },
     {
       "type": "tv",
+      "id": 107116,
+      "title": "Supreme God Emperor"
+    },
+    {
+      "type": "tv",
       "id": 14658,
       "title": "Survivor"
     },
@@ -13527,6 +13687,11 @@
       "type": "tv",
       "id": 334700,
       "title": "The Gift of Deceit"
+    },
+    {
+      "type": "tv",
+      "id": 81723,
+      "title": "The Gilded Age"
     },
     {
       "type": "tv",
@@ -14020,6 +14185,11 @@
     },
     {
       "type": "tv",
+      "id": 208445,
+      "title": "The Witch and the Beast"
+    },
+    {
+      "type": "tv",
       "id": 71912,
       "title": "The Witcher"
     },
@@ -14220,6 +14390,11 @@
     },
     {
       "type": "tv",
+      "id": 257603,
+      "title": "TsumaSho"
+    },
+    {
+      "type": "tv",
       "id": 153312,
       "title": "Tulsa King"
     },
@@ -14337,6 +14512,11 @@
       "type": "tv",
       "id": 46188,
       "title": "Vivement dimanche"
+    },
+    {
+      "type": "tv",
+      "id": 139542,
+      "title": "Viviana"
     },
     {
       "type": "tv",
