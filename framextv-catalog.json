@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "2026-11-02",
+  "version": "2026-11-03",
   "source": "FrameXTV public browse links collected over multiple passes; video not tested",
   "items": [
     {
@@ -270,6 +270,11 @@
     },
     {
       "type": "movie",
+      "id": 198287,
+      "title": "After the Dark"
+    },
+    {
+      "type": "movie",
       "id": 613504,
       "title": "After We Collided"
     },
@@ -522,6 +527,11 @@
       "type": "movie",
       "id": 568,
       "title": "Apollo 13"
+    },
+    {
+      "type": "movie",
+      "id": 568272,
+      "title": "Après Demain"
     },
     {
       "type": "movie",
@@ -810,6 +820,11 @@
     },
     {
       "type": "movie",
+      "id": 1244523,
+      "title": "Beware Boiúna"
+    },
+    {
+      "type": "movie",
       "id": 1475440,
       "title": "Beyond Belief"
     },
@@ -992,6 +1007,11 @@
       "type": "movie",
       "id": 2604,
       "title": "Born on the Fourth of July"
+    },
+    {
+      "type": "movie",
+      "id": 9702,
+      "title": "Bound by Honor"
     },
     {
       "type": "movie",
@@ -1860,6 +1880,11 @@
     },
     {
       "type": "movie",
+      "id": 39324,
+      "title": "Dragon Ball Z: The History of Trunks"
+    },
+    {
+      "type": "movie",
       "id": 39144,
       "title": "Dragon Ball: Curse of the Blood Rubies"
     },
@@ -1872,6 +1897,11 @@
       "type": "movie",
       "id": 18190,
       "title": "Dream Lover"
+    },
+    {
+      "type": "movie",
+      "id": 12516,
+      "title": "Dreams"
     },
     {
       "type": "movie",
@@ -2242,6 +2272,11 @@
       "type": "movie",
       "id": 1878,
       "title": "Fear and Loathing in Las Vegas"
+    },
+    {
+      "type": "movie",
+      "id": 1128204,
+      "title": "Feed"
     },
     {
       "type": "movie",
@@ -2625,6 +2660,11 @@
     },
     {
       "type": "movie",
+      "id": 1381071,
+      "title": "Godzilla Minus Zero"
+    },
+    {
+      "type": "movie",
       "id": 399566,
       "title": "Godzilla vs. Kong"
     },
@@ -2702,6 +2742,11 @@
       "type": "movie",
       "id": 927,
       "title": "Gremlins"
+    },
+    {
+      "type": "movie",
+      "id": 928,
+      "title": "Gremlins 2: The New Batch"
     },
     {
       "type": "movie",
@@ -2907,6 +2952,11 @@
       "type": "movie",
       "id": 493922,
       "title": "Hereditary"
+    },
+    {
+      "type": "movie",
+      "id": 79,
+      "title": "Hero"
     },
     {
       "type": "movie",
@@ -3242,6 +3292,11 @@
       "type": "movie",
       "id": 49018,
       "title": "Insidious"
+    },
+    {
+      "type": "movie",
+      "id": 91586,
+      "title": "Insidious: Chapter 2"
     },
     {
       "type": "movie",
@@ -4182,6 +4237,11 @@
       "type": "movie",
       "id": 954,
       "title": "Mission: Impossible"
+    },
+    {
+      "type": "movie",
+      "id": 353081,
+      "title": "Mission: Impossible - Fallout"
     },
     {
       "type": "movie",
@@ -5540,6 +5600,11 @@
     },
     {
       "type": "movie",
+      "id": 273481,
+      "title": "Sicario"
+    },
+    {
+      "type": "movie",
       "id": 961722,
       "title": "Sidney"
     },
@@ -6690,6 +6755,11 @@
     },
     {
       "type": "movie",
+      "id": 240,
+      "title": "The Godfather Part II"
+    },
+    {
+      "type": "movie",
       "id": 242,
       "title": "The Godfather Part III"
     },
@@ -6925,6 +6995,11 @@
     },
     {
       "type": "movie",
+      "id": 1404304,
+      "title": "The Isolate Thief"
+    },
+    {
+      "type": "movie",
       "id": 9654,
       "title": "The Italian Job"
     },
@@ -6945,6 +7020,11 @@
     },
     {
       "type": "movie",
+      "id": 38575,
+      "title": "The Karate Kid"
+    },
+    {
+      "type": "movie",
       "id": 8856,
       "title": "The Karate Kid Part II"
     },
@@ -6952,6 +7032,11 @@
       "type": "movie",
       "id": 28468,
       "title": "The Key"
+    },
+    {
+      "type": "movie",
+      "id": 10835,
+      "title": "The Killer"
     },
     {
       "type": "movie",
@@ -7180,6 +7265,11 @@
     },
     {
       "type": "movie",
+      "id": 799583,
+      "title": "The Ministry of Ungentlemanly Warfare"
+    },
+    {
+      "type": "movie",
       "id": 501929,
       "title": "The Mitchells vs. the Machines"
     },
@@ -7207,6 +7297,11 @@
       "type": "movie",
       "id": 11176,
       "title": "The Muppet Movie"
+    },
+    {
+      "type": "movie",
+      "id": 64328,
+      "title": "The Muppets"
     },
     {
       "type": "movie",
@@ -7247,6 +7342,11 @@
       "type": "movie",
       "id": 11036,
       "title": "The Notebook"
+    },
+    {
+      "type": "movie",
+      "id": 439079,
+      "title": "The Nun"
     },
     {
       "type": "movie",
@@ -7435,6 +7535,11 @@
     },
     {
       "type": "movie",
+      "id": 565,
+      "title": "The Ring"
+    },
+    {
+      "type": "movie",
       "id": 10501,
       "title": "The Road to El Dorado"
     },
@@ -7542,6 +7647,11 @@
       "type": "movie",
       "id": 11836,
       "title": "The SpongeBob SquarePants Movie"
+    },
+    {
+      "type": "movie",
+      "id": 454992,
+      "title": "The Spy Who Dumped Me"
     },
     {
       "type": "movie",
@@ -7717,6 +7827,11 @@
       "type": "movie",
       "id": 310131,
       "title": "The Witch"
+    },
+    {
+      "type": "movie",
+      "id": 10166,
+      "title": "The Witches"
     },
     {
       "type": "movie",
@@ -8137,6 +8252,11 @@
       "type": "movie",
       "id": 837,
       "title": "Videodrome"
+    },
+    {
+      "type": "movie",
+      "id": 14324,
+      "title": "Virgin Territory"
     },
     {
       "type": "movie",
@@ -8610,6 +8730,11 @@
     },
     {
       "type": "tv",
+      "id": 243555,
+      "title": "Akka"
+    },
+    {
+      "type": "tv",
       "id": 32209,
       "title": "Al Fondo Hay Sitio"
     },
@@ -8642,6 +8767,11 @@
       "type": "tv",
       "id": 110316,
       "title": "Alice in Borderland"
+    },
+    {
+      "type": "tv",
+      "id": 314391,
+      "title": "Alice Roberts: Our Hospital Through Time"
     },
     {
       "type": "tv",
@@ -8767,6 +8897,11 @@
       "type": "tv",
       "id": 3508,
       "title": "Anderson Cooper 360°"
+    },
+    {
+      "type": "tv",
+      "id": 83867,
+      "title": "Andor"
     },
     {
       "type": "tv",
@@ -8950,6 +9085,11 @@
     },
     {
       "type": "tv",
+      "id": 314271,
+      "title": "Bass X Machina"
+    },
+    {
+      "type": "tv",
       "id": 215803,
       "title": "Batang Quiapo"
     },
@@ -8972,6 +9112,11 @@
       "type": "tv",
       "id": 1972,
       "title": "Battlestar Galactica"
+    },
+    {
+      "type": "tv",
+      "id": 155780,
+      "title": "Batwheels"
     },
     {
       "type": "tv",
@@ -9132,6 +9277,11 @@
       "type": "tv",
       "id": 62710,
       "title": "Blindspot"
+    },
+    {
+      "type": "tv",
+      "id": 127529,
+      "title": "Bloodhounds"
     },
     {
       "type": "tv",
@@ -9655,6 +9805,11 @@
     },
     {
       "type": "tv",
+      "id": 234800,
+      "title": "Curses!"
+    },
+    {
+      "type": "tv",
       "id": 7897,
       "title": "Cuéntame cómo pasó"
     },
@@ -9757,6 +9912,11 @@
       "type": "tv",
       "id": 1406,
       "title": "Deadwood"
+    },
+    {
+      "type": "tv",
+      "id": 123818,
+      "title": "Deaimon: Recipe for Happiness"
     },
     {
       "type": "tv",
@@ -10097,6 +10257,11 @@
       "type": "tv",
       "id": 1415,
       "title": "Elementary"
+    },
+    {
+      "type": "tv",
+      "id": 67175,
+      "title": "Elena of Avalor"
     },
     {
       "type": "tv",
@@ -10467,6 +10632,11 @@
       "type": "tv",
       "id": 1719,
       "title": "Gargoyles"
+    },
+    {
+      "type": "tv",
+      "id": 205,
+      "title": "Garth Marenghi's Darkplace"
     },
     {
       "type": "tv",
@@ -10867,6 +11037,11 @@
       "type": "tv",
       "id": 1425,
       "title": "House of Cards"
+    },
+    {
+      "type": "tv",
+      "id": 243881,
+      "title": "House of David"
     },
     {
       "type": "tv",
@@ -11920,6 +12095,11 @@
     },
     {
       "type": "tv",
+      "id": 241554,
+      "title": "Murderbot"
+    },
+    {
+      "type": "tv",
       "id": 12786,
       "title": "Murdoch Mysteries"
     },
@@ -12195,8 +12375,18 @@
     },
     {
       "type": "tv",
+      "id": 273240,
+      "title": "Off Campus"
+    },
+    {
+      "type": "tv",
       "id": 334517,
       "title": "Oh! My Guard"
+    },
+    {
+      "type": "tv",
+      "id": 84580,
+      "title": "Old River"
     },
     {
       "type": "tv",
@@ -12417,6 +12607,11 @@
       "type": "tv",
       "id": 14955,
       "title": "POV"
+    },
+    {
+      "type": "tv",
+      "id": 197604,
+      "title": "Power Play"
     },
     {
       "type": "tv",
@@ -13300,6 +13495,11 @@
     },
     {
       "type": "tv",
+      "id": 921,
+      "title": "Supertrain"
+    },
+    {
+      "type": "tv",
       "id": 107116,
       "title": "Supreme God Emperor"
     },
@@ -13640,6 +13840,11 @@
     },
     {
       "type": "tv",
+      "id": 238843,
+      "title": "The Fable"
+    },
+    {
+      "type": "tv",
       "id": 1803,
       "title": "The Facts of Life"
     },
@@ -13717,6 +13922,11 @@
       "type": "tv",
       "id": 69158,
       "title": "The Good Fight"
+    },
+    {
+      "type": "tv",
+      "id": 86132,
+      "title": "The Good Side of Life"
     },
     {
       "type": "tv",
@@ -13945,6 +14155,11 @@
     },
     {
       "type": "tv",
+      "id": 82104,
+      "title": "The Order"
+    },
+    {
+      "type": "tv",
       "id": 46896,
       "title": "The Originals"
     },
@@ -13957,6 +14172,11 @@
       "type": "tv",
       "id": 21561,
       "title": "The Outer Limits"
+    },
+    {
+      "type": "tv",
+      "id": 204370,
+      "title": "The Path"
     },
     {
       "type": "tv",
@@ -13995,6 +14215,11 @@
     },
     {
       "type": "tv",
+      "id": 256711,
+      "title": "The Rainmaker"
+    },
+    {
+      "type": "tv",
       "id": 2286,
       "title": "The Real Ghostbusters"
     },
@@ -14010,6 +14235,11 @@
     },
     {
       "type": "tv",
+      "id": 279246,
+      "title": "The Remarried Empress"
+    },
+    {
+      "type": "tv",
       "id": 504,
       "title": "The Ren & Stimpy Show"
     },
@@ -14022,6 +14252,11 @@
       "type": "tv",
       "id": 79744,
       "title": "The Rookie"
+    },
+    {
+      "type": "tv",
+      "id": 330613,
+      "title": "The Rules"
     },
     {
       "type": "tv",
@@ -14475,6 +14710,11 @@
     },
     {
       "type": "tv",
+      "id": 90204,
+      "title": "Vem vet mest?"
+    },
+    {
+      "type": "tv",
       "id": 12173,
       "title": "Verbotene Liebe"
     },
@@ -14542,6 +14782,11 @@
       "type": "tv",
       "id": 262259,
       "title": "Wandance"
+    },
+    {
+      "type": "tv",
+      "id": 298852,
+      "title": "WAR"
     },
     {
       "type": "tv",
