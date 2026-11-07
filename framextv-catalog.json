@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "2026-11-06",
+  "version": "2026-11-07",
   "source": "FrameXTV public browse links collected over multiple passes; video not tested",
   "items": [
     {
@@ -147,6 +147,11 @@
       "type": "movie",
       "id": 881,
       "title": "A Few Good Men"
+    },
+    {
+      "type": "movie",
+      "id": 17903,
+      "title": "A Frozen Flower"
     },
     {
       "type": "movie",
@@ -337,6 +342,11 @@
       "type": "movie",
       "id": 11238,
       "title": "Aladdin and the King of Thieves"
+    },
+    {
+      "type": "movie",
+      "id": 407604,
+      "title": "Albizu Vive"
     },
     {
       "type": "movie",
@@ -1390,6 +1400,11 @@
     },
     {
       "type": "movie",
+      "id": 24620,
+      "title": "Charly & Steffen"
+    },
+    {
+      "type": "movie",
       "id": 9982,
       "title": "Chicken Little"
     },
@@ -1985,6 +2000,11 @@
     },
     {
       "type": "movie",
+      "id": 10607,
+      "title": "Don't Be a Menace to South Central While Drinking Your Juice in the Hood"
+    },
+    {
+      "type": "movie",
       "id": 1339274,
       "title": "Don't Leave the Kids Alone"
     },
@@ -2027,6 +2047,11 @@
       "type": "movie",
       "id": 39324,
       "title": "Dragon Ball Z: The History of Trunks"
+    },
+    {
+      "type": "movie",
+      "id": 39101,
+      "title": "Dragon Ball Z: The Tree of Might"
     },
     {
       "type": "movie",
@@ -2295,6 +2320,11 @@
     },
     {
       "type": "movie",
+      "id": 1474226,
+      "title": "Evil Dress"
+    },
+    {
+      "type": "movie",
       "id": 11527,
       "title": "Excalibur"
     },
@@ -2547,6 +2577,11 @@
       "type": "movie",
       "id": 11660,
       "title": "Following"
+    },
+    {
+      "type": "movie",
+      "id": 26018,
+      "title": "Food Matters"
     },
     {
       "type": "movie",
@@ -2957,6 +2992,11 @@
       "type": "movie",
       "id": 928,
       "title": "Gremlins 2: The New Batch"
+    },
+    {
+      "type": "movie",
+      "id": 516634,
+      "title": "Greve"
     },
     {
       "type": "movie",
@@ -3372,6 +3412,11 @@
       "type": "movie",
       "id": 1403862,
       "title": "I need you"
+    },
+    {
+      "type": "movie",
+      "id": 1286656,
+      "title": "I Play Rocky"
     },
     {
       "type": "movie",
@@ -4340,6 +4385,11 @@
     },
     {
       "type": "movie",
+      "id": 75,
+      "title": "Mars Attacks!"
+    },
+    {
+      "type": "movie",
       "id": 9539,
       "title": "Martyrs"
     },
@@ -5175,6 +5225,11 @@
     },
     {
       "type": "movie",
+      "id": 893723,
+      "title": "PAW Patrol: The Mighty Movie"
+    },
+    {
+      "type": "movie",
       "id": 10647,
       "title": "Pay It Forward"
     },
@@ -5385,6 +5440,11 @@
     },
     {
       "type": "movie",
+      "id": 335904,
+      "title": "Portable Country"
+    },
+    {
+      "type": "movie",
       "id": 503,
       "title": "Poseidon"
     },
@@ -5487,6 +5547,11 @@
       "type": "movie",
       "id": 582014,
       "title": "Promising Young Woman"
+    },
+    {
+      "type": "movie",
+      "id": 822653,
+      "title": "Puella Magi Madoka Magica the Movie -Walpurgisnacht: Rising-"
     },
     {
       "type": "movie",
@@ -5627,6 +5692,11 @@
       "type": "movie",
       "id": 845781,
       "title": "Red One"
+    },
+    {
+      "type": "movie",
+      "id": 930094,
+      "title": "Red, White & Royal Blue"
     },
     {
       "type": "movie",
@@ -6735,6 +6805,11 @@
     },
     {
       "type": "movie",
+      "id": 1595325,
+      "title": "The Anacondas"
+    },
+    {
+      "type": "movie",
       "id": 522924,
       "title": "The Art of Racing in the Rain"
     },
@@ -7195,6 +7270,11 @@
     },
     {
       "type": "movie",
+      "id": 1029575,
+      "title": "The Family Plan"
+    },
+    {
+      "type": "movie",
       "id": 617126,
       "title": "The Fantastic 4: First Steps"
     },
@@ -7437,6 +7517,11 @@
       "type": "movie",
       "id": 14864,
       "title": "The Hot Spot"
+    },
+    {
+      "type": "movie",
+      "id": 11308,
+      "title": "The Hotel New Hampshire"
     },
     {
       "type": "movie",
@@ -7862,6 +7947,11 @@
       "type": "movie",
       "id": 1734,
       "title": "The Mummy Returns"
+    },
+    {
+      "type": "movie",
+      "id": 1735,
+      "title": "The Mummy: Tomb of the Dragon Emperor"
     },
     {
       "type": "movie",
@@ -8685,6 +8775,11 @@
     },
     {
       "type": "movie",
+      "id": 7446,
+      "title": "Tropic Thunder"
+    },
+    {
+      "type": "movie",
       "id": 652,
       "title": "Troy"
     },
@@ -8750,6 +8845,11 @@
     },
     {
       "type": "movie",
+      "id": 285081,
+      "title": "Tödlicher Ausgang"
+    },
+    {
+      "type": "movie",
       "id": 9741,
       "title": "Unbreakable"
     },
@@ -8787,6 +8887,11 @@
       "type": "movie",
       "id": 48138,
       "title": "Unknown"
+    },
+    {
+      "type": "movie",
+      "id": 1794569,
+      "title": "Unprotected: Murder in Galicia"
     },
     {
       "type": "movie",
@@ -8867,6 +8972,16 @@
       "type": "movie",
       "id": 837,
       "title": "Videodrome"
+    },
+    {
+      "type": "movie",
+      "id": 305049,
+      "title": "Violent Femmes"
+    },
+    {
+      "type": "movie",
+      "id": 533514,
+      "title": "Violet Evergarden: The Movie"
     },
     {
       "type": "movie",
@@ -9077,6 +9192,11 @@
       "type": "movie",
       "id": 82690,
       "title": "Wreck-It Ralph"
+    },
+    {
+      "type": "movie",
+      "id": 23823,
+      "title": "Wrong Turn 3: Left for Dead"
     },
     {
       "type": "movie",
@@ -9862,6 +9982,11 @@
       "type": "tv",
       "id": 62852,
       "title": "Billions"
+    },
+    {
+      "type": "tv",
+      "id": 15687,
+      "title": "Bingolotto"
     },
     {
       "type": "tv",
@@ -13110,6 +13235,11 @@
     },
     {
       "type": "tv",
+      "id": 220871,
+      "title": "O Casarão"
+    },
+    {
+      "type": "tv",
       "id": 278508,
       "title": "O Direito de Nascer"
     },
@@ -13627,6 +13757,11 @@
       "type": "tv",
       "id": 228721,
       "title": "RoboGobo"
+    },
+    {
+      "type": "tv",
+      "id": 2192,
+      "title": "Robotech"
     },
     {
       "type": "tv",
@@ -14700,6 +14835,11 @@
     },
     {
       "type": "tv",
+      "id": 253376,
+      "title": "The Girlfriend"
+    },
+    {
+      "type": "tv",
       "id": 110181,
       "title": "The God of War Dominates"
     },
@@ -15010,8 +15150,18 @@
     },
     {
       "type": "tv",
+      "id": 307478,
+      "title": "The Perfect Lie"
+    },
+    {
+      "type": "tv",
       "id": 250307,
       "title": "The Pitt"
+    },
+    {
+      "type": "tv",
+      "id": 10731,
+      "title": "The Plastic Man Comedy/Adventure Show"
     },
     {
       "type": "tv",
